@@ -527,8 +527,11 @@ button {
 }
 
 .settings-card {
-  grid-area: settings;
   padding: 24px;
+}
+
+.projects-grid > .settings-card {
+  grid-area: settings;
 }
 
 .project-form {
