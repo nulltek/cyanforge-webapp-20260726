@@ -217,6 +217,7 @@ function App() {
     setActionStatus('Saving feature API key...')
 
     try {
+      const featureLabel = openAiStatus.features.find((feature) => feature.id === featureId)?.label || 'Feature'
       const token = await user.getIdToken()
       const data = await apiRequest('/api/settings/openai', {
         method: 'POST',
@@ -226,7 +227,7 @@ function App() {
 
       setOpenAiStatus(data)
       updateFeatureKey(featureId, '')
-      setActionStatus('Feature API key saved without exposing it.')
+      setActionStatus(`${featureLabel} API key saved without exposing it.`)
     } catch (error) {
       setActionStatus(error.message)
     } finally {
