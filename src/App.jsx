@@ -9,7 +9,6 @@ import {
   Check,
   ChevronRight,
   CircleDollarSign,
-  Database,
   FileText,
   Globe2,
   LockKeyhole,
@@ -43,6 +42,8 @@ const features = [
     title: 'Website scan command center',
     body: 'Paste a URL, preview crawl depth, robots status, indexability, page templates, and structured data coverage before running a paid report.',
     metric: '384 signals mapped',
+    action: 'Run site scan',
+    analysis: 'Scan analytics',
   },
   {
     className: 'bento-card bento-tall',
@@ -50,6 +51,8 @@ const features = [
     title: 'Competitor finder',
     body: 'Discover competing domains from SERPs, category language, backlinks, and AI answer overlap.',
     metric: '12 likely rivals',
+    action: 'Find competitors',
+    analysis: 'Competitor analytics',
   },
   {
     className: 'bento-card bento-wide',
@@ -57,6 +60,8 @@ const features = [
     title: 'SEO and GEO comparison',
     body: 'Compare rankings, answer-engine visibility, schema gaps, topical authority, and content freshness.',
     metric: '+31% opportunity',
+    action: 'Compare visibility',
+    analysis: 'SEO and GEO analytics',
   },
   {
     className: 'bento-card',
@@ -64,13 +69,17 @@ const features = [
     title: 'Report builder',
     body: 'Create board-ready reports with sections, screenshots, tasks, and share links.',
     metric: '4 draft reports',
+    action: 'Build report',
+    analysis: 'Report analytics',
   },
   {
     className: 'bento-card',
     icon: LockKeyhole,
-    title: 'Subscription access',
-    body: 'Plans, seats, limits, billing, and gated exports are designed into the product shell.',
-    metric: '3 tiers',
+    title: 'Access control',
+    body: 'Manage seats, plan limits, billing rules, and administrator overrides from one entitlement surface.',
+    metric: 'Admin bypass ready',
+    action: 'Review access',
+    analysis: 'Access analytics',
   },
 ]
 
@@ -101,27 +110,24 @@ function visualDataUri(title, variant = 0) {
           <stop offset="0" stop-color="${paper}"/>
           <stop offset="1" stop-color="${wash}"/>
         </linearGradient>
-        <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="20"/>
-        </filter>
       </defs>
       <rect width="1200" height="820" fill="url(#bg)"/>
-      <circle cx="1000" cy="80" r="190" fill="${cyan}" opacity=".16" filter="url(#soft)"/>
-      <circle cx="180" cy="720" r="220" fill="${cyan}" opacity=".12" filter="url(#soft)"/>
+      <circle cx="1000" cy="80" r="190" fill="${cyan}" opacity=".06"/>
+      <circle cx="180" cy="720" r="220" fill="${cyan}" opacity=".05"/>
       <rect x="108" y="96" width="984" height="628" rx="42" fill="#ffffff" opacity=".84" stroke="${cyan}" stroke-opacity=".28"/>
       <rect x="158" y="150" width="414" height="44" rx="22" fill="${ink}" opacity=".88"/>
-      <rect x="158" y="220" width="250" height="22" rx="11" fill="${cyan}" opacity=".48"/>
-      <rect x="158" y="264" width="326" height="22" rx="11" fill="${cyan}" opacity=".24"/>
+      <rect x="158" y="220" width="250" height="22" rx="11" fill="${cyan}" opacity=".28"/>
+      <rect x="158" y="264" width="326" height="22" rx="11" fill="${cyan}" opacity=".16"/>
       <rect x="160" y="348" width="250" height="242" rx="28" fill="${wash}" stroke="${cyan}" stroke-opacity=".22"/>
       <rect x="460" y="348" width="250" height="242" rx="28" fill="#ffffff" stroke="${cyan}" stroke-opacity=".22"/>
       <rect x="760" y="348" width="250" height="242" rx="28" fill="${wash}" stroke="${cyan}" stroke-opacity=".22"/>
-      <path d="M198 526 C276 402 326 480 386 390" fill="none" stroke="${cyan}" stroke-width="14" stroke-linecap="round"/>
-      <path d="M498 526 C564 470 610 500 678 404" fill="none" stroke="${ink}" stroke-opacity=".42" stroke-width="14" stroke-linecap="round"/>
-      <path d="M798 526 C852 446 924 468 978 382" fill="none" stroke="${cyan}" stroke-width="14" stroke-linecap="round"/>
+      <path d="M198 526 C276 402 326 480 386 390" fill="none" stroke="${cyan}" stroke-width="10" stroke-linecap="round"/>
+      <path d="M498 526 C564 470 610 500 678 404" fill="none" stroke="${ink}" stroke-opacity=".34" stroke-width="10" stroke-linecap="round"/>
+      <path d="M798 526 C852 446 924 468 978 382" fill="none" stroke="${cyan}" stroke-width="10" stroke-linecap="round"/>
       <g fill="${ink}" opacity=".72" font-family="Arial, sans-serif" font-size="34" font-weight="700">
         <text x="158" y="666">${safeTitle}</text>
       </g>
-      <g fill="${cyan}" opacity=".58">
+      <g fill="${cyan}" opacity=".36">
         <circle cx="242" cy="526" r="12"/>
         <circle cx="626" cy="444" r="12"/>
         <circle cx="934" cy="456" r="12"/>
@@ -152,16 +158,19 @@ function App() {
   const pinnedRef = useRef(null)
   const [authMode, setAuthMode] = useState(null)
   const [user, setUser] = useState(null)
-  const [databaseOnline, setDatabaseOnline] = useState(false)
   const [actionStatus, setActionStatus] = useState('Ready to save scans and reports')
   const [savedReports, setSavedReports] = useState([])
+  const [activeAnalysis, setActiveAnalysis] = useState(null)
+  const isAdministrator = Boolean(
+    user
+      && `${user.displayName || ''} ${user.email || ''}`.toLowerCase().includes('nulltek'),
+  )
 
   useEffect(() => listenToAuthState(setUser), [])
 
   useEffect(() => {
     apiRequest('/api/health')
       .then((data) => {
-        setDatabaseOnline(Boolean(data.database))
         setActionStatus(data.database ? 'Database connected' : 'Database not configured')
       })
       .catch((error) => setActionStatus(error.message))
@@ -234,6 +243,20 @@ function App() {
     } catch (error) {
       setActionStatus(error.message)
     }
+  }
+
+  function startAnalysis(feature, index) {
+    setActiveAnalysis({
+      ...feature,
+      accent: index,
+      rows: [
+        ['Primary signal', feature.metric],
+        ['Access state', isAdministrator ? 'Administrator access' : 'Subscription required for export'],
+        ['Next action', feature.action],
+      ],
+    })
+    setActionStatus(`${feature.analysis} opened`)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   useGSAP(
@@ -329,13 +352,10 @@ function App() {
           <button className="icon-button" type="button" aria-label="Open alerts">
             <Bell size={18} />
           </button>
-          <span className={databaseOnline ? 'db-pill online' : 'db-pill'}>
-            <Database size={15} />
-            {databaseOnline ? 'DB live' : 'DB off'}
-          </span>
           {user ? (
             <div className="user-chip">
               <span>{user.displayName || user.email}</span>
+              {isAdministrator ? <small>Administrator</small> : null}
               <button className="icon-button" type="button" aria-label="Log out" onClick={logout}>
                 <LogOut size={18} />
               </button>
@@ -355,6 +375,46 @@ function App() {
         </div>
       </nav>
 
+      {activeAnalysis ? (
+        <section className="analytics-page">
+          <button className="button dark" type="button" onClick={() => setActiveAnalysis(null)}>
+            Back to workspace
+          </button>
+          <div className="analytics-hero">
+            <div>
+              <p className="eyebrow">{activeAnalysis.analysis}</p>
+              <h1>{activeAnalysis.title}</h1>
+              <p>{activeAnalysis.body}</p>
+            </div>
+            <div className="analytics-visual" aria-hidden="true">
+              <img src={visualDataUri(activeAnalysis.analysis, activeAnalysis.accent)} alt="" />
+            </div>
+          </div>
+          <div className="analytics-grid">
+            {activeAnalysis.rows.map(([label, value]) => (
+              <article className="analytics-card" key={label}>
+                <span>{label}</span>
+                <strong>{value}</strong>
+              </article>
+            ))}
+          </div>
+          <div className="analytics-panel">
+            <div>
+              <BarChart3 size={24} />
+              <h2>Process started and routed to analytics.</h2>
+              <p>
+                This page is the future destination for live crawl output, competitor results,
+                GEO comparisons, entitlement checks, and report generation.
+              </p>
+            </div>
+            <button className="button light large" type="button" onClick={() => saveReport(activeAnalysis.title)}>
+              Save analytics report
+              <ArrowRight size={18} />
+            </button>
+          </div>
+        </section>
+      ) : (
+        <>
       <section id="top" className="hero-section">
         <div className="hero-art" aria-hidden="true">
           <img
@@ -425,22 +485,32 @@ function App() {
           </p>
         </div>
         <div className="bento-grid">
-          {features.map(({ className, icon: Icon, title, body, metric }, index) => (
-            <article className={className} key={title}>
-              <div className="card-image">
-                <img
-                  src={visualDataUri(title, index + 1)}
-                  alt=""
-                />
-              </div>
-              <div className="card-content">
-                <Icon size={22} />
-                <h3>{title}</h3>
-                <p>{body}</p>
-                <strong>{metric}</strong>
-              </div>
-            </article>
-          ))}
+          {features.map((feature, index) => {
+            const { className, icon: Icon, title, body, metric, action } = feature
+
+            return (
+              <article className={className} key={title}>
+                <div className="card-image">
+                  <img
+                    src={visualDataUri(title, index + 1)}
+                    alt=""
+                  />
+                </div>
+                <div className="card-content">
+                  <Icon size={22} />
+                  <h3>{title}</h3>
+                  <p>{body}</p>
+                  <div className="card-footer">
+                    <strong>{metric}</strong>
+                    <button className="button light" type="button" onClick={() => startAnalysis(feature, index)}>
+                      {action}
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              </article>
+            )
+          })}
         </div>
       </section>
 
@@ -481,7 +551,7 @@ function App() {
                 <p>{body}</p>
               </div>
               <div className="report-actions">
-                <span>{index === 0 ? 'Draft' : index === 1 ? 'Ready' : 'Locked'}</span>
+                <span>{isAdministrator ? 'Admin unlocked' : index === 0 ? 'Draft' : index === 1 ? 'Ready' : 'Locked'}</span>
                 <button className="button light" type="button" onClick={() => saveReport(title)}>
                   Save
                 </button>
@@ -524,7 +594,7 @@ function App() {
           <h2>Subscription shell ready for gated usage.</h2>
           <p>
             The visual model includes account creation, login, plan limits, report quotas,
-            competitor slots, and team features.
+            competitor slots, team features, and a NullTek administrator override.
           </p>
         </div>
         <div className="pricing-grid">
@@ -544,7 +614,7 @@ function App() {
                 </p>
               ))}
               <button className={plan === 'Growth' ? 'button light' : 'button dark'} type="button">
-                Choose plan
+                {isAdministrator ? 'Unlocked for NullTek' : 'Choose plan'}
               </button>
             </article>
           ))}
@@ -563,6 +633,8 @@ function App() {
           <a href="#pricing">Billing</a>
         </div>
       </footer>
+        </>
+      )}
 
       {authMode ? (
         <AuthModal
