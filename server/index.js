@@ -237,7 +237,7 @@ async function readOpenAiKey(featureId) {
 }
 
 function isLikelyOpenAiKey(value) {
-  return /^sk-\S{20,}$/.test(String(value || '').trim())
+  return String(value || '').replace(/\s+/g, '').length >= 20
 }
 
 function settingSecret() {
@@ -396,7 +396,7 @@ app.post('/api/settings/openai', async (request, response) => {
 
     const { apiKey, featureId = 'competitor_search' } = request.body || {}
     const feature = apiKeyFeatures.find((item) => item.id === featureId)
-    const trimmedKey = String(apiKey || '').trim()
+    const trimmedKey = String(apiKey || '').replace(/\s+/g, '')
 
     if (!feature) {
       response.status(400).json({ error: 'Feature key slot is required.' })
@@ -404,7 +404,7 @@ app.post('/api/settings/openai', async (request, response) => {
     }
 
     if (!isLikelyOpenAiKey(trimmedKey)) {
-      response.status(400).json({ error: 'Enter a valid OpenAI API key.' })
+      response.status(400).json({ error: 'Enter an OpenAI API key with at least 20 characters.' })
       return
     }
 
