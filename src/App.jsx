@@ -81,9 +81,11 @@ function visualDataUri(title, variant = 0) {
 }
 
 async function apiRequest(path, options = {}) {
+  const { headers: optionHeaders, ...requestOptions } = options
+
   const response = await fetch(path, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-    ...options,
+    ...requestOptions,
+    headers: { 'Content-Type': 'application/json', ...optionHeaders },
   })
 
   const data = await response.json().catch(() => ({}))
