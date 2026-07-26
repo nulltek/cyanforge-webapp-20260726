@@ -69,26 +69,26 @@ const copy = {
     usernameLimit: 'Username can be changed 2 times per month.',
   },
   hu: {
-    home: 'Kezdőlap',
+    home: 'Kezd\u0151lap',
     projects: 'Projektek',
-    pricing: 'Árak',
-    settings: 'Beállítások',
-    login: 'Bejelentkezés',
-    register: 'Regisztráció',
-    logout: 'Kijelentkezés',
-    latestPost: 'Legújabb poszt',
+    pricing: '\u00c1rak',
+    settings: 'Be\u00e1ll\u00edt\u00e1sok',
+    login: 'Bejelentkez\u00e9s',
+    register: 'Regisztr\u00e1ci\u00f3',
+    logout: 'Kijelentkez\u00e9s',
+    latestPost: 'Leg\u00fajabb poszt',
     savedPosts: 'Mentett posztok',
-    noPosts: 'Még nincs cikk.',
-    settingsTitle: 'Beállítások',
-    settingsIntro: 'Válassz témát, nyelvet, felhasználónevet és profilképet.',
-    theme: 'Téma',
-    lightMode: 'Világos mód',
-    darkMode: 'Sötét mód',
+    noPosts: 'M\u00e9g nincs cikk.',
+    settingsTitle: 'Be\u00e1ll\u00edt\u00e1sok',
+    settingsIntro: 'V\u00e1lassz t\u00e9m\u00e1t, nyelvet, felhaszn\u00e1l\u00f3nevet \u00e9s profilk\u00e9pet.',
+    theme: 'T\u00e9ma',
+    lightMode: 'Vil\u00e1gos m\u00f3d',
+    darkMode: 'S\u00f6t\u00e9t m\u00f3d',
     language: 'Nyelv',
-    username: 'Felhasználónév',
-    profilePicture: 'Profilkép',
-    saveProfile: 'Profil mentése',
-    usernameLimit: 'A felhasználónév havonta 2 alkalommal módosítható.',
+    username: 'Felhaszn\u00e1l\u00f3n\u00e9v',
+    profilePicture: 'Profilk\u00e9p',
+    saveProfile: 'Profil ment\u00e9se',
+    usernameLimit: 'A felhaszn\u00e1l\u00f3n\u00e9v havonta 2 alkalommal m\u00f3dos\u00edthat\u00f3.',
   },
 }
 
@@ -243,7 +243,7 @@ async function downloadLayoutAuditPdf(project, audit) {
   doc.setProperties({
     title: `${project.name} responsive layout audit`,
     subject: 'Mobile, laptop, responsiveness, layout, and branding audit',
-    creator: 'FaNCy SEO',
+    creator: 'RankSprint',
   })
 
   doc.setFillColor(0, 142, 196)
@@ -251,7 +251,7 @@ async function downloadLayoutAuditPdf(project, audit) {
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(18)
-  doc.text('FaNCy SEO Responsive Layout Audit', 14, 19)
+  doc.text('RankSprint Responsive Layout Audit', 14, 19)
 
   doc.setTextColor(6, 45, 66)
   doc.setFontSize(21)
@@ -325,7 +325,7 @@ async function downloadSeoPdf(project, analysis) {
   doc.setProperties({
     title: `${project.name} SEO improvement report`,
     subject: 'SEO recommendations',
-    creator: 'FaNCy SEO',
+    creator: 'RankSprint',
   })
 
   doc.setFillColor(0, 142, 196)
@@ -333,7 +333,7 @@ async function downloadSeoPdf(project, analysis) {
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(18)
-  doc.text('FaNCy SEO Improvement Report', 14, 18)
+  doc.text('RankSprint Improvement Report', 14, 18)
 
   doc.setTextColor(6, 45, 66)
   doc.setFontSize(22)
@@ -422,8 +422,8 @@ async function downloadAnalyticsPdf(project, competitors, seoAnalysis, articleDr
 
   doc.setProperties({
     title: `${project.name} analytics report`,
-    subject: 'FaNCy SEO analytics export',
-    creator: 'FaNCy SEO',
+    subject: 'RankSprint analytics export',
+    creator: 'RankSprint',
   })
 
   doc.setFillColor(0, 142, 196)
@@ -431,7 +431,7 @@ async function downloadAnalyticsPdf(project, competitors, seoAnalysis, articleDr
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(18)
-  doc.text('FaNCy SEO Analytics Report', 14, 18)
+  doc.text('RankSprint Analytics Report', 14, 18)
 
   doc.setTextColor(6, 45, 66)
   doc.setFontSize(22)
@@ -559,8 +559,8 @@ function App() {
   const [user, setUser] = useState(null)
   const [screen, setScreen] = useState('home')
   const [dashboardTab, setDashboardTab] = useState('details')
-  const [themeMode, setThemeMode] = useState(() => window.localStorage.getItem('fancy_seo_theme') || 'light')
-  const [language, setLanguage] = useState(() => window.localStorage.getItem('fancy_seo_language') || 'en')
+  const [themeMode, setThemeMode] = useState(() => window.localStorage.getItem('ranksprint_theme') || 'light')
+  const [language, setLanguage] = useState(() => window.localStorage.getItem('ranksprint_language') || 'en')
   const [actionStatus, setActionStatus] = useState('Ready to save scans and reports')
   const [savedReports, setSavedReports] = useState([])
   const [openAiStatus, setOpenAiStatus] = useState({ configured: false, features: [] })
@@ -630,11 +630,11 @@ function App() {
   useEffect(() => listenToAuthState(setUser), [])
 
   useEffect(() => {
-    window.localStorage.setItem('fancy_seo_theme', themeMode)
+    window.localStorage.setItem('ranksprint_theme', themeMode)
   }, [themeMode])
 
   useEffect(() => {
-    window.localStorage.setItem('fancy_seo_language', language)
+    window.localStorage.setItem('ranksprint_language', language)
   }, [language])
 
   useEffect(() => {
@@ -1151,11 +1151,11 @@ function App() {
   return (
     <main ref={rootRef} className={`app-shell overflow-guard theme-${themeMode}`}>
       <nav className="nav-shell">
-        <button className="brand brand-button" type="button" aria-label="FaNCy SEO home" onClick={() => setScreen('home')}>
+        <button className="brand brand-button" type="button" aria-label="RankSprint home" onClick={() => setScreen('home')}>
           <span className="brand-mark">
             <Globe2 size={18} />
           </span>
-          FaNCy SEO
+          RankSprint
         </button>
         <div className="nav-links" aria-label="Main navigation">
           <button className={screen === 'home' ? 'active' : ''} type="button" onClick={() => setScreen('home')}>{t.home}</button>
@@ -1194,13 +1194,13 @@ function App() {
         <>
           <section id="top" className="hero-section">
             <div className="hero-art" aria-hidden="true">
-              <img src={visualDataUri('FaNCy SEO visibility map', 0)} alt="" />
+              <img src={visualDataUri('RankSprint visibility map', 0)} alt="" />
             </div>
             <div className="hero-copy">
               <p className="eyebrow">Scan once. Decide where search demand moves next.</p>
               <h1>Audit any website, then compare SEO and AI search visibility against the market.</h1>
               <p className="hero-body">
-                FaNCy SEO is a subscription workspace for teams that need URL scanning,
+                RankSprint is a subscription workspace for teams that need URL scanning,
                 competitor discovery, GEO visibility analysis, and polished reports from one product surface.
               </p>
               <div className="hero-actions">
@@ -2180,7 +2180,7 @@ function AuthModal({ mode, onClose, onModeChange }) {
         </div>
         <div className="auth-panel">
           <p className="auth-kicker">{isRegister ? 'Create workspace access' : 'Welcome back'}</p>
-          <h2 id="auth-title">{isRegister ? 'Register for FaNCy SEO.' : 'Log in to FaNCy SEO.'}</h2>
+          <h2 id="auth-title">{isRegister ? 'Register for RankSprint.' : 'Log in to RankSprint.'}</h2>
           <p className="auth-copy">
             Use email and password, or continue with Google once Firebase Authentication is configured.
           </p>

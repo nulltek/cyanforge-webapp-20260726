@@ -1,12 +1,12 @@
 databases:
-  - name: fancy-seo-postgres
+  - name: ranksprint-postgres
     plan: free
-    databaseName: fancy_seo
-    user: fancy_seo
+    databaseName: ranksprint
+    user: ranksprint
 
 services:
   - type: web
-    name: fancy-seo-web
+    name: ranksprint-web
     runtime: node
     plan: free
     buildCommand: npm ci --include=dev && npm run build
@@ -18,7 +18,7 @@ services:
         value: "false"
       - key: DATABASE_URL
         fromDatabase:
-          name: fancy-seo-postgres
+          name: ranksprint-postgres
           property: connectionString
       - key: VITE_FIREBASE_API_KEY
         value: AIzaSyDOVgglDopjbSfhxk-jWg42cK4M6rOT1h4

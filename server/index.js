@@ -422,7 +422,7 @@ async function fetchWebsiteSnapshot(url) {
   try {
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'FaNCySEOLayoutAudit/1.0',
+        'User-Agent': 'RankSprintLayoutAudit/1.0',
         Accept: 'text/html,application/xhtml+xml',
       },
       redirect: 'follow',
@@ -475,7 +475,7 @@ function isLikelyOpenAiKey(value) {
 function settingSecret() {
   return crypto
     .createHash('sha256')
-    .update(process.env.OPENAI_KEY_ENCRYPTION_SECRET || process.env.DATABASE_URL || 'fancy-seo-local-dev')
+    .update(process.env.OPENAI_KEY_ENCRYPTION_SECRET || process.env.DATABASE_URL || 'ranksprint-local-dev')
     .digest()
 }
 
@@ -1303,7 +1303,7 @@ app.get(/.*/, (_request, response) => {
 migrate()
   .then(() => {
     app.listen(port, () => {
-      console.log(`FaNCy SEO listening on ${port}`)
+      console.log(`RankSprint listening on ${port}`)
     })
   })
   .catch((error) => {
