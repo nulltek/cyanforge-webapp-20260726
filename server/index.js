@@ -8,12 +8,35 @@ const __dirname = path.dirname(__filename)
 const app = express()
 const port = process.env.PORT || 3000
 
-const pool = process.env.DATABASE_URL
-  ? new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+function createPool() {
+  const ssl = process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+
+  if (process.env.DATABASE_URL) {
+    try {
+      const databaseUrl = new URL(process.env.DATABASE_URL)
+      if (databaseUrl.hostname && databaseUrl.hostname !== 'base') {
+        return new Pool({ connectionString: process.env.DATABASE_URL, ssl })
+      }
+    } catch {
+      console.warn('DATABASE_URL is invalid. Falling back to PG* variables.')
+    }
+  }
+
+  if (process.env.PGHOST && process.env.PGUSER && process.env.PGPASSWORD && process.env.PGDATABASE) {
+    return new Pool({
+      host: process.env.PGHOST,
+      port: Number(process.env.PGPORT || 5432),
+      user: process.env.PGUSER,
+      password: process.env.PGPASSWORD,
+      database: process.env.PGDATABASE,
+      ssl,
     })
-  : null
+  }
+
+  return null
+}
+
+const pool = createPool()
 
 app.use(express.json({ limit: '1mb' }))
 
