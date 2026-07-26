@@ -243,7 +243,7 @@ async function downloadLayoutAuditPdf(project, audit) {
   doc.setProperties({
     title: `${project.name} responsive layout audit`,
     subject: 'Mobile, laptop, responsiveness, layout, and branding audit',
-    creator: 'CyanForge',
+    creator: 'FaNCy SEO',
   })
 
   doc.setFillColor(0, 142, 196)
@@ -251,7 +251,7 @@ async function downloadLayoutAuditPdf(project, audit) {
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(18)
-  doc.text('CyanForge Responsive Layout Audit', 14, 19)
+  doc.text('FaNCy SEO Responsive Layout Audit', 14, 19)
 
   doc.setTextColor(6, 45, 66)
   doc.setFontSize(21)
@@ -325,7 +325,7 @@ async function downloadSeoPdf(project, analysis) {
   doc.setProperties({
     title: `${project.name} SEO improvement report`,
     subject: 'SEO recommendations',
-    creator: 'CyanForge',
+    creator: 'FaNCy SEO',
   })
 
   doc.setFillColor(0, 142, 196)
@@ -333,7 +333,7 @@ async function downloadSeoPdf(project, analysis) {
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(18)
-  doc.text('CyanForge SEO Improvement Report', 14, 18)
+  doc.text('FaNCy SEO Improvement Report', 14, 18)
 
   doc.setTextColor(6, 45, 66)
   doc.setFontSize(22)
@@ -422,8 +422,8 @@ async function downloadAnalyticsPdf(project, competitors, seoAnalysis, articleDr
 
   doc.setProperties({
     title: `${project.name} analytics report`,
-    subject: 'CyanForge analytics export',
-    creator: 'CyanForge',
+    subject: 'FaNCy SEO analytics export',
+    creator: 'FaNCy SEO',
   })
 
   doc.setFillColor(0, 142, 196)
@@ -431,7 +431,7 @@ async function downloadAnalyticsPdf(project, competitors, seoAnalysis, articleDr
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(18)
-  doc.text('CyanForge Analytics Report', 14, 18)
+  doc.text('FaNCy SEO Analytics Report', 14, 18)
 
   doc.setTextColor(6, 45, 66)
   doc.setFontSize(22)
@@ -559,8 +559,8 @@ function App() {
   const [user, setUser] = useState(null)
   const [screen, setScreen] = useState('home')
   const [dashboardTab, setDashboardTab] = useState('details')
-  const [themeMode, setThemeMode] = useState(() => window.localStorage.getItem('cyanforge_theme') || 'light')
-  const [language, setLanguage] = useState(() => window.localStorage.getItem('cyanforge_language') || 'en')
+  const [themeMode, setThemeMode] = useState(() => window.localStorage.getItem('fancy_seo_theme') || 'light')
+  const [language, setLanguage] = useState(() => window.localStorage.getItem('fancy_seo_language') || 'en')
   const [actionStatus, setActionStatus] = useState('Ready to save scans and reports')
   const [savedReports, setSavedReports] = useState([])
   const [openAiStatus, setOpenAiStatus] = useState({ configured: false, features: [] })
@@ -630,11 +630,11 @@ function App() {
   useEffect(() => listenToAuthState(setUser), [])
 
   useEffect(() => {
-    window.localStorage.setItem('cyanforge_theme', themeMode)
+    window.localStorage.setItem('fancy_seo_theme', themeMode)
   }, [themeMode])
 
   useEffect(() => {
-    window.localStorage.setItem('cyanforge_language', language)
+    window.localStorage.setItem('fancy_seo_language', language)
   }, [language])
 
   useEffect(() => {
@@ -1151,16 +1151,16 @@ function App() {
   return (
     <main ref={rootRef} className={`app-shell overflow-guard theme-${themeMode}`}>
       <nav className="nav-shell">
-        <button className="brand brand-button" type="button" aria-label="CyanForge home" onClick={() => setScreen('home')}>
+        <button className="brand brand-button" type="button" aria-label="FaNCy SEO home" onClick={() => setScreen('home')}>
           <span className="brand-mark">
             <Globe2 size={18} />
           </span>
-          CyanForge
+          FaNCy SEO
         </button>
         <div className="nav-links" aria-label="Main navigation">
-          <button type="button" onClick={() => setScreen('home')}>{t.home}</button>
-          <button type="button" onClick={() => setScreen('projects')}>{t.projects}</button>
-          <button type="button" onClick={() => setScreen('settings')}>{t.settings}</button>
+          <button className={screen === 'home' ? 'active' : ''} type="button" onClick={() => setScreen('home')}>{t.home}</button>
+          <button className={screen === 'projects' || screen === 'dashboard' ? 'active' : ''} type="button" onClick={() => setScreen('projects')}>{t.projects}</button>
+          <button className={screen === 'settings' ? 'active' : ''} type="button" onClick={() => setScreen('settings')}>{t.settings}</button>
           <a href="#pricing" onClick={() => setScreen('home')}>{t.pricing}</a>
         </div>
         <div className="nav-actions">
@@ -1194,13 +1194,13 @@ function App() {
         <>
           <section id="top" className="hero-section">
             <div className="hero-art" aria-hidden="true">
-              <img src={visualDataUri('CyanForge visibility map', 0)} alt="" />
+              <img src={visualDataUri('FaNCy SEO visibility map', 0)} alt="" />
             </div>
             <div className="hero-copy">
               <p className="eyebrow">Scan once. Decide where search demand moves next.</p>
               <h1>Audit any website, then compare SEO and AI search visibility against the market.</h1>
               <p className="hero-body">
-                CyanForge is a subscription workspace for teams that need URL scanning,
+                FaNCy SEO is a subscription workspace for teams that need URL scanning,
                 competitor discovery, GEO visibility analysis, and polished reports from one product surface.
               </p>
               <div className="hero-actions">
@@ -2180,7 +2180,7 @@ function AuthModal({ mode, onClose, onModeChange }) {
         </div>
         <div className="auth-panel">
           <p className="auth-kicker">{isRegister ? 'Create workspace access' : 'Welcome back'}</p>
-          <h2 id="auth-title">{isRegister ? 'Register for CyanForge.' : 'Log in to CyanForge.'}</h2>
+          <h2 id="auth-title">{isRegister ? 'Register for FaNCy SEO.' : 'Log in to FaNCy SEO.'}</h2>
           <p className="auth-copy">
             Use email and password, or continue with Google once Firebase Authentication is configured.
           </p>

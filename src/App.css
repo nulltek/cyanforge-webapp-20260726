@@ -202,6 +202,13 @@
   background: rgba(63, 198, 246, 0.18);
 }
 
+.nav-links a.active,
+.nav-links button.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, #008ec4, #35d4ff);
+  box-shadow: 0 10px 26px rgba(0, 142, 196, 0.2);
+}
+
 .nav-actions,
 .hero-actions {
   display: flex;
@@ -718,10 +725,17 @@ button {
 .settings-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
   gap: 18px;
 }
 
+.settings-grid > .settings-card {
+  min-width: 0;
+  min-height: 210px;
+}
+
 .settings-field {
+  min-width: 0;
   display: grid;
   gap: 8px;
 }
@@ -729,12 +743,15 @@ button {
 .segmented-control {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  min-width: 0;
   gap: 10px;
 }
 
 .segmented-control button,
 .avatar-picker button {
   display: inline-flex;
+  min-width: 0;
   min-height: 48px;
   align-items: center;
   justify-content: center;
@@ -745,6 +762,8 @@ button {
   background: rgba(255, 255, 255, 0.74);
   font: inherit;
   font-weight: 850;
+  white-space: normal;
+  text-align: center;
   cursor: pointer;
 }
 
