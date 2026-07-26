@@ -103,9 +103,9 @@ function App() {
   const [dashboardTab, setDashboardTab] = useState('details')
   const [actionStatus, setActionStatus] = useState('Ready to save scans and reports')
   const [savedReports, setSavedReports] = useState([])
-  const [openAiStatus, setOpenAiStatus] = useState({ configured: false, model: 'gpt-5.5', reasoningEffort: 'low' })
-  const [openAiKey, setOpenAiKey] = useState('')
-  const [openAiSaving, setOpenAiSaving] = useState(false)
+  const [openAiStatus, setOpenAiStatus] = useState({ configured: false, features: [] })
+  const [openAiKeys, setOpenAiKeys] = useState({})
+  const [openAiSavingFeature, setOpenAiSavingFeature] = useState('')
   const [projectForm, setProjectForm] = useState({
     name: '',
     description: '',
@@ -123,6 +123,7 @@ function App() {
       && `${user.displayName || ''} ${user.email || ''}`.toLowerCase().includes('nulltek'),
   )
   const activeProject = projects.find((project) => project.id === activeProjectId) || projects[0] || null
+  const competitorSearchKey = openAiStatus.features.find((feature) => feature.id === 'competitor_search')
 
   useEffect(() => listenToAuthState(setUser), [])
 
@@ -200,7 +201,11 @@ function App() {
     }
   }
 
-  async function saveOpenAiKey(event) {
+  function updateFeatureKey(featureId, value) {
+    setOpenAiKeys((current) => ({ ...current, [featureId]: value }))
+  }
+
+  async function saveOpenAiKey(event, featureId) {
     event.preventDefault()
 
     if (!isAdministrator || !user) {
@@ -208,24 +213,24 @@ function App() {
       return
     }
 
-    setOpenAiSaving(true)
-    setActionStatus('Saving OpenAI key...')
+    setOpenAiSavingFeature(featureId)
+    setActionStatus('Saving feature API key...')
 
     try {
       const token = await user.getIdToken()
       const data = await apiRequest('/api/settings/openai', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ apiKey: openAiKey }),
+        body: JSON.stringify({ apiKey: openAiKeys[featureId], featureId }),
       })
 
       setOpenAiStatus(data)
-      setOpenAiKey('')
-      setActionStatus('OpenAI key saved. Competitor search can use GPT-5.5 low effort.')
+      updateFeatureKey(featureId, '')
+      setActionStatus('Feature API key saved without exposing it.')
     } catch (error) {
       setActionStatus(error.message)
     } finally {
-      setOpenAiSaving(false)
+      setOpenAiSavingFeature('')
     }
   }
 
@@ -294,7 +299,7 @@ function App() {
       setActionStatus(
         data.source === 'openai'
           ? 'Competitors found with OpenAI.'
-          : 'Competitor placeholders shown. Save OpenAI key to run live search.',
+          : 'Competitor placeholders shown. Save the competitor search API key to run live search.',
       )
     } catch (error) {
       setActionStatus(error.message)
@@ -474,33 +479,45 @@ function App() {
                 <div>
                   <h3>OpenAI API access</h3>
                   <p>
-                    {openAiStatus.configured
-                      ? `${openAiStatus.model} ready on ${openAiStatus.reasoningEffort} effort`
-                      : isAdministrator
-                        ? 'Paste one admin key once. The app will use it for every workspace user.'
-                        : 'Waiting for an administrator to connect the shared OpenAI key.'}
+                    Every feature gets its own key slot. Future features should add a new text field here.
                   </p>
                 </div>
               </div>
               {isAdministrator ? (
-                <form className="api-key-form" onSubmit={saveOpenAiKey}>
-                  <input
-                    type="password"
-                    value={openAiKey}
-                    onChange={(event) => setOpenAiKey(event.target.value)}
-                    placeholder="sk-..."
-                    aria-label="OpenAI API key"
-                    autoComplete="off"
-                  />
-                  <button className="button light" type="submit" disabled={openAiSaving || !openAiKey.trim()}>
-                    {openAiSaving ? <LoaderCircle size={17} className="spin-icon" /> : <KeyRound size={17} />}
-                    Save shared key
-                  </button>
-                </form>
+                <div className="feature-key-list">
+                  {openAiStatus.features.map((feature) => (
+                    <form className="feature-key-form" key={feature.id} onSubmit={(event) => saveOpenAiKey(event, feature.id)}>
+                      <div>
+                        <strong>{feature.label}</strong>
+                        <span>
+                          {feature.configured ? 'Configured' : 'Missing'} · {feature.model} · {feature.reasoningEffort} effort
+                        </span>
+                      </div>
+                      <div className="api-key-form">
+                        <input
+                          type="password"
+                          value={openAiKeys[feature.id] || ''}
+                          onChange={(event) => updateFeatureKey(feature.id, event.target.value)}
+                          placeholder="sk-..."
+                          aria-label={`${feature.label} OpenAI API key`}
+                          autoComplete="off"
+                        />
+                        <button
+                          className="button light"
+                          type="submit"
+                          disabled={openAiSavingFeature === feature.id || !(openAiKeys[feature.id] || '').trim()}
+                        >
+                          {openAiSavingFeature === feature.id ? <LoaderCircle size={17} className="spin-icon" /> : <KeyRound size={17} />}
+                          Save key
+                        </button>
+                      </div>
+                    </form>
+                  ))}
+                </div>
               ) : (
                 <div className="admin-lock-note">
                   <LockKeyhole size={18} />
-                  Only the NullTek administrator can add or replace the shared API key.
+                  Only the NullTek administrator can add or replace feature API keys.
                 </div>
               )}
             </div>
@@ -624,8 +641,8 @@ function App() {
                     <strong>{activeProject.website_url}</strong>
                   </article>
                   <article className="analytics-card">
-                    <span>OpenAI</span>
-                    <strong>{openAiStatus.configured ? 'Connected' : 'Missing'}</strong>
+                    <span>Competitor key</span>
+                    <strong>{competitorSearchKey?.configured ? 'Connected' : 'Missing'}</strong>
                   </article>
                   <article className="analytics-card">
                     <span>Competitors</span>

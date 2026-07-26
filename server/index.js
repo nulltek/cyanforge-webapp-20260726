@@ -13,6 +13,14 @@ const firebaseProjectId = process.env.VITE_FIREBASE_PROJECT_ID || process.env.FI
 const firebaseJwks = createRemoteJWKSet(
   new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'),
 )
+const apiKeyFeatures = [
+  {
+    id: 'competitor_search',
+    label: 'Competitor search',
+    model: 'gpt-5.5',
+    reasoningEffort: 'low',
+  },
+]
 
 function createPool() {
   const ssl = process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
@@ -183,7 +191,7 @@ function fallbackCompetitors(project) {
   return [
     {
       businessName: `${base} Alternative One`,
-      description: 'Placeholder competitor generated until an OpenAI API key is saved.',
+      description: 'Placeholder competitor generated until the competitor search API key is saved.',
       location: 'Unknown',
       email: '',
       phone: '',
@@ -200,7 +208,11 @@ function fallbackCompetitors(project) {
   ]
 }
 
-async function readOpenAiKey() {
+function featureSettingKey(featureId) {
+  return `openai_api_key:${featureId}`
+}
+
+async function readOpenAiKey(featureId) {
   if (process.env.OPENAI_API_KEY) {
     return process.env.OPENAI_API_KEY
   }
@@ -209,7 +221,16 @@ async function readOpenAiKey() {
     return ''
   }
 
-  const result = await query('select value from app_settings where key = $1', ['openai_api_key'])
+  const result = await query(
+    `
+      select value
+      from app_settings
+      where key = $1 or ($2 = 'competitor_search' and key = 'openai_api_key')
+      order by case when key = $1 then 0 else 1 end
+      limit 1
+    `,
+    [featureSettingKey(featureId), featureId],
+  )
   const savedValue = result.rows[0]?.value || ''
   const decryptedValue = decryptSetting(savedValue)
   return isLikelyOpenAiKey(decryptedValue) ? decryptedValue : ''
@@ -286,7 +307,7 @@ async function requireAdministrator(request) {
 }
 
 async function findCompetitorsWithOpenAI(project) {
-  const apiKey = await readOpenAiKey()
+  const apiKey = await readOpenAiKey('competitor_search')
 
   if (!apiKey) {
     return { competitors: fallbackCompetitors(project), source: 'fallback' }
@@ -344,7 +365,7 @@ app.get('/api/health', async (_request, response) => {
       await query('select 1')
     }
 
-    response.json({ ok: true, database: Boolean(pool), openai: Boolean(await readOpenAiKey()) })
+    response.json({ ok: true, database: Boolean(pool), openai: Boolean(await readOpenAiKey('competitor_search')) })
   } catch (error) {
     response.status(500).json({ ok: false, error: error.message })
   }
@@ -352,10 +373,17 @@ app.get('/api/health', async (_request, response) => {
 
 app.get('/api/settings/openai', async (_request, response) => {
   try {
+    const features = []
+    for (const feature of apiKeyFeatures) {
+      features.push({
+        ...feature,
+        configured: Boolean(await readOpenAiKey(feature.id)),
+      })
+    }
+
     response.json({
-      configured: Boolean(await readOpenAiKey()),
-      model: 'gpt-5.5',
-      reasoningEffort: 'low',
+      configured: features.some((feature) => feature.configured),
+      features,
     })
   } catch (error) {
     response.status(500).json({ error: error.message })
@@ -366,8 +394,14 @@ app.post('/api/settings/openai', async (request, response) => {
   try {
     await requireAdministrator(request)
 
-    const { apiKey } = request.body
+    const { apiKey, featureId } = request.body
+    const feature = apiKeyFeatures.find((item) => item.id === featureId)
     const trimmedKey = String(apiKey || '').trim()
+
+    if (!feature) {
+      response.status(400).json({ error: 'Feature key slot is required.' })
+      return
+    }
 
     if (!isLikelyOpenAiKey(trimmedKey)) {
       response.status(400).json({ error: 'Enter a valid OpenAI API key.' })
@@ -382,10 +416,18 @@ app.post('/api/settings/openai', async (request, response) => {
           value = excluded.value,
           updated_at = now()
       `,
-      ['openai_api_key', encryptSetting(trimmedKey)],
+      [featureSettingKey(feature.id), encryptSetting(trimmedKey)],
     )
 
-    response.json({ configured: true, model: 'gpt-5.5', reasoningEffort: 'low' })
+    const features = []
+    for (const item of apiKeyFeatures) {
+      features.push({
+        ...item,
+        configured: item.id === feature.id ? true : Boolean(await readOpenAiKey(item.id)),
+      })
+    }
+
+    response.json({ configured: features.some((item) => item.configured), features })
   } catch (error) {
     response.status(error.statusCode || 500).json({ error: error.message })
   }

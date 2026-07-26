@@ -532,6 +532,37 @@ button {
   gap: 10px;
 }
 
+.feature-key-list {
+  display: grid;
+  gap: 12px;
+}
+
+.feature-key-form {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(43, 178, 230, 0.16);
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(238, 250, 255, 0.68);
+}
+
+.feature-key-form strong,
+.feature-key-form span {
+  display: block;
+}
+
+.feature-key-form strong {
+  color: #062d42;
+  font-size: 1rem;
+}
+
+.feature-key-form span {
+  margin-top: 4px;
+  color: rgba(7, 51, 74, 0.58);
+  font-size: 0.86rem;
+  font-weight: 780;
+}
+
 .admin-lock-note {
   display: flex;
   min-height: 52px;
