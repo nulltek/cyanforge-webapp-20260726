@@ -61,7 +61,7 @@ const features = [
     analysis: 'SEO and GEO analytics',
   },
   {
-    className: 'bento-card',
+    className: 'bento-card bento-half',
     icon: FileText,
     title: 'Report builder',
     body: 'Create board-ready reports with sections, screenshots, tasks, and share links.',
@@ -69,7 +69,7 @@ const features = [
     analysis: 'Report analytics',
   },
   {
-    className: 'bento-card',
+    className: 'bento-card bento-half',
     icon: LockKeyhole,
     title: 'Access control',
     body: 'Manage seats, plan limits, billing rules, and administrator overrides from one entitlement surface.',

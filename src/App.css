@@ -441,6 +441,11 @@ button {
   grid-row: span 2;
 }
 
+.bento-half {
+  grid-column: span 3;
+  grid-row: span 2;
+}
+
 .card-image {
   position: absolute;
   inset: -8% -10% auto auto;
@@ -1085,7 +1090,8 @@ button:disabled {
   .bento-card,
   .bento-large,
   .bento-tall,
-  .bento-wide {
+  .bento-wide,
+  .bento-half {
     grid-column: span 1;
     grid-row: span 1;
   }
