@@ -205,7 +205,7 @@ function parseSeoPayload(text) {
   const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : trimmed)
 
   return {
-    score: Number(parsed.score || 0),
+    score: Math.max(0, Math.min(10, Number(parsed.score || 0))),
     summary: String(parsed.summary || '').trim(),
     rules: Array.isArray(parsed.rules) ? parsed.rules.slice(0, 12) : [],
     competitorComparison: Array.isArray(parsed.competitorComparison)
@@ -241,7 +241,7 @@ function fallbackCompetitors(project) {
 
 function fallbackSeoAnalysis(project, competitors) {
   return {
-    score: 52,
+    score: 5.2,
     summary: 'Placeholder SEO analysis shown until the SEO analysis API key is saved.',
     rules: [
       { rule: 'Title tags', status: 'review', finding: 'Check that each important page has one clear title under 60 characters.' },
@@ -448,7 +448,7 @@ Use current public web information. Return only valid JSON in this shape:
   "recommendations": ["Specific prioritized recommendation"]
 }
 
-Rules to cover: title tags, meta descriptions, headings, internal links, indexability, mobile performance, structured data, content depth, local/business trust signals, and technical crawlability.
+Score must be from 0 to 10, where 10 is excellent SEO. Rules to cover: title tags, meta descriptions, headings, internal links, indexability, mobile performance, structured data, content depth, local/business trust signals, and technical crawlability.
 `
 
   const response = await fetch('https://api.openai.com/v1/responses', {

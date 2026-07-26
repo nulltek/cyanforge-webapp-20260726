@@ -9,6 +9,7 @@ import {
   Check,
   ChevronRight,
   CircleDollarSign,
+  Download,
   ExternalLink,
   FileText,
   Globe2,
@@ -95,6 +96,118 @@ async function apiRequest(path, options = {}) {
   }
 
   return data
+}
+
+function addWrappedText(doc, text, x, y, width, lineHeight = 6, maxY = 278) {
+  const lines = doc.splitTextToSize(String(text || ''), width)
+  let cursorY = y
+
+  for (const line of lines) {
+    if (cursorY > maxY) {
+      return cursorY
+    }
+    doc.text(line, x, cursorY)
+    cursorY += lineHeight
+  }
+
+  return cursorY
+}
+
+async function downloadSeoPdf(project, analysis) {
+  if (!project || !analysis?.payload) {
+    return
+  }
+
+  const { jsPDF } = await import('jspdf')
+  const payload = analysis.payload
+  const score = Number(payload.score || 0).toFixed(1)
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+  const fileBase = project.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'seo-report'
+
+  doc.setProperties({
+    title: `${project.name} SEO improvement report`,
+    subject: 'SEO recommendations',
+    creator: 'CyanForge',
+  })
+
+  doc.setFillColor(0, 142, 196)
+  doc.rect(0, 0, 210, 28, 'F')
+  doc.setTextColor(255, 255, 255)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(18)
+  doc.text('CyanForge SEO Improvement Report', 14, 18)
+
+  doc.setTextColor(6, 45, 66)
+  doc.setFontSize(22)
+  doc.text(project.name, 14, 44)
+  doc.setFontSize(11)
+  doc.setFont('helvetica', 'normal')
+  doc.text(project.website_url, 14, 52)
+
+  doc.setDrawColor(53, 212, 255)
+  doc.roundedRect(150, 38, 42, 28, 3, 3)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(22)
+  doc.text(`${score}/10`, 158, 56)
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.text('Executive summary', 14, 74)
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(10)
+  let cursorY = addWrappedText(doc, payload.summary || 'No summary available.', 14, 82, 180)
+
+  cursorY += 8
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.text('Top improvements', 14, cursorY)
+  cursorY += 8
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(10)
+  ;(payload.recommendations || []).slice(0, 9).forEach((recommendation, index) => {
+    cursorY = addWrappedText(doc, `${index + 1}. ${recommendation}`, 14, cursorY, 180)
+    cursorY += 3
+  })
+
+  doc.addPage()
+  doc.setFillColor(239, 251, 255)
+  doc.rect(0, 0, 210, 297, 'F')
+  doc.setTextColor(6, 45, 66)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(18)
+  doc.text('Rules and competitor comparison', 14, 22)
+
+  doc.setFontSize(13)
+  doc.text('SEO rules to improve', 14, 38)
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  cursorY = 46
+  ;(payload.rules || []).slice(0, 8).forEach((rule) => {
+    cursorY = addWrappedText(doc, `${rule.rule} (${rule.status}): ${rule.finding}`, 14, cursorY, 180, 5, 142)
+    cursorY += 3
+  })
+
+  cursorY = 158
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.text('Competitor notes', 14, cursorY)
+  cursorY += 8
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  ;(payload.competitorComparison || []).slice(0, 7).forEach((competitor) => {
+    cursorY = addWrappedText(
+      doc,
+      `${competitor.businessName}: ${competitor.edge} Risk: ${competitor.risk}`,
+      14,
+      cursorY,
+      180,
+      5,
+      280,
+    )
+    cursorY += 3
+  })
+
+  doc.save(`${fileBase}-seo-improvements.pdf`)
 }
 
 function App() {
@@ -852,8 +965,12 @@ function App() {
                   <div className="seo-report">
                     <div className="seo-score-card">
                       <span>SEO score</span>
-                      <strong>{seoAnalysis.payload?.score ?? 0}</strong>
+                      <strong>{Number(seoAnalysis.payload?.score || 0).toFixed(1)}<small>/10</small></strong>
                       <p>{seoAnalysis.payload?.summary || 'No summary available.'}</p>
+                      <button className="button light" type="button" onClick={() => downloadSeoPdf(activeProject, seoAnalysis)}>
+                        <Download size={17} />
+                        Download 2-page PDF
+                      </button>
                     </div>
                     <div className="seo-section-grid">
                       <article>
@@ -915,7 +1032,7 @@ function App() {
                   </article>
                   <article className="analytics-card">
                     <span>SEO score</span>
-                    <strong>{seoAnalysis?.payload?.score ?? 'None'}</strong>
+                    <strong>{seoAnalysis?.payload?.score != null ? `${Number(seoAnalysis.payload.score).toFixed(1)}/10` : 'None'}</strong>
                   </article>
                 </div>
                 <div className="analytics-panel">

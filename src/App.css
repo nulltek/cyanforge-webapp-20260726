@@ -1273,6 +1273,15 @@ button {
   line-height: 1;
 }
 
+.seo-score-card strong small {
+  color: rgba(7, 51, 74, 0.52);
+  font-size: 1.1rem;
+}
+
+.seo-score-card .button {
+  margin-top: 12px;
+}
+
 .seo-score-card p,
 .seo-row p,
 .seo-recommendations p {
