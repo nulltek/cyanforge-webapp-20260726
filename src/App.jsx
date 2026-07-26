@@ -67,6 +67,138 @@ const copy = {
     profilePicture: 'Profile picture',
     saveProfile: 'Save profile',
     usernameLimit: 'Username can be changed 2 times per month.',
+    administrator: 'Administrator',
+    alerts: 'Open alerts',
+    heroEyebrow: 'Scan once. Decide where search demand moves next.',
+    heroTitle: 'Audit any website, then compare SEO and AI search visibility against the market.',
+    heroBody: 'RankSprint is a subscription workspace for teams that need URL scanning, competitor discovery, GEO visibility analysis, and polished reports from one product surface.',
+    openProjects: 'Open projects',
+    viewPrices: 'View prices',
+    introTitle: 'The public page now stays focused on the product story.',
+    introBody: 'Statistics, competitor tools, and analytics live inside project dashboards so the homepage can explain the offer and push users into their workspace cleanly.',
+    pricingTitle: 'Subscription plans for search visibility work.',
+    pricingBody: 'Create projects, run competitor discovery, and unlock exports from a persistent account workspace. NullTek administrators keep full access.',
+    starter: 'Starter',
+    growth: 'Growth',
+    studio: 'Studio',
+    starterPoints: ['3 projects', '10 scans', 'Basic exports'],
+    growthPoints: ['25 projects', 'Competitor tracking', 'GEO reports'],
+    studioPoints: ['Unlimited seats', 'White-label reports', 'Priority crawl queue'],
+    choosePlan: 'Choose plan',
+    unlockedForNulltek: 'Unlocked for NullTek',
+    footerTitle: 'Start with a project, then run every workflow in its dashboard.',
+    projectsEyebrow: 'Projects',
+    projectsTitle: 'Choose a workspace or create a new project.',
+    apiAccess: 'OpenAI API access',
+    apiAccessBody: 'Every feature gets its own key slot. Future features should add a new text field here.',
+    configured: 'Configured',
+    missing: 'Missing',
+    effort: 'effort',
+    saveKey: 'Save key',
+    adminOnlyKeys: 'Only the NullTek administrator can add or replace feature API keys.',
+    createProject: 'Create project',
+    createProjectBody: 'Name and website are required. Description and image are optional.',
+    projectName: 'Project name',
+    projectDescription: 'Project description',
+    projectImageUrl: 'Project image URL',
+    websiteUrl: 'Website URL',
+    projectNamePlaceholder: 'NullTek growth audit',
+    projectDescriptionPlaceholder: 'Short business context, market, customers, or offer.',
+    listedProjects: 'Listed projects',
+    listedProjectsBody: 'Select one to open its dashboard.',
+    noProjects: 'No projects yet.',
+    leftThisMonth: 'left this month.',
+    backToProjects: 'Back to projects',
+    details: 'Details',
+    competitorSearch: 'Competitor search',
+    seoAnalysis: 'SEO analysis',
+    blogWriter: 'Blog writer',
+    layoutAudit: 'Layout audit',
+    analytics: 'Analytics',
+    noProjectDescription: 'No project description added yet.',
+    website: 'Website',
+    competitorKey: 'Competitor key',
+    seoKey: 'SEO key',
+    blogKey: 'Blog key',
+    layoutAuditKey: 'Layout audit key',
+    connected: 'Connected',
+    competitors: 'Competitors',
+    competitorTitle: 'Find competing businesses for {project}.',
+    source: 'Source',
+    openAiLiveSearch: 'OpenAI live search',
+    fallbackPlaceholders: 'fallback placeholders',
+    competitorRunning: 'Competitor search running',
+    searchCompetitors: 'Search competitors',
+    noCompetitors: 'No competitors searched yet.',
+    seoTitle: 'Analyze {project} against SEO rules and competitors.',
+    seoRunning: 'SEO analysis running',
+    runSeo: 'Run SEO analysis',
+    seoScore: 'SEO score',
+    noSummary: 'No summary available.',
+    downloadTwoPagePdf: 'Download 2-page PDF',
+    basicSeoRules: 'Basic SEO rules',
+    competitorComparison: 'Competitor comparison',
+    recommendations: 'Recommendations',
+    noSeo: 'No SEO analysis run yet.',
+    blogTitle: 'Write a trend-aware article for {project}.',
+    blogRunning: 'Blog/news writer running',
+    writeArticle: 'Write article',
+    untitledPost: 'Untitled post',
+    liveTrendDraft: 'Live trend draft',
+    placeholderDraft: 'Placeholder draft',
+    trendAngle: 'Trend angle',
+    competitorAngles: 'Competitor angles',
+    postText: 'Post text',
+    layoutTitle: 'Check mobile, laptop, brand, and layout quality for {project}.',
+    layoutRunning: 'Responsive layout audit running',
+    runLayoutAudit: 'Run layout audit',
+    liveResponsiveAudit: 'Live responsive audit',
+    placeholderAudit: 'Placeholder audit',
+    downloadFullPdf: 'Download full PDF',
+    mobileLayout: 'Mobile layout',
+    laptopLayout: 'Laptop layout',
+    responsiveness: 'Responsiveness',
+    brandingIssues: 'Branding issues',
+    fix: 'Fix',
+    quickWins: 'Quick wins',
+    noLayoutAudit: 'No responsive layout audit run yet.',
+    analyticsTitle: 'Project statistics and report signals stay here.',
+    competitorsFound: 'Competitors found',
+    dataSource: 'Data source',
+    reportsSaved: 'Reports saved',
+    latestArticle: 'Latest article',
+    layoutScore: 'Layout score',
+    none: 'None',
+    analyticsShellTitle: 'Analytics page shell ready for SEO and GEO statistics.',
+    analyticsShellBody: 'This tab is where visibility charts, competitor deltas, report history, and scan statistics will live for the selected project.',
+    saveAnalyticsPdf: 'Save analytics PDF',
+    competitorProfile: 'Competitor profile',
+    noDescription: 'No description found yet.',
+    locationNotFound: 'Location not found',
+    emailNotFound: 'Email not found',
+    phoneNotFound: 'Phone not found',
+    websiteNotFound: 'Website not found',
+    savedPost: 'Saved post',
+    closeProgress: 'Close progress popup',
+    closeSeoProgress: 'Close SEO progress popup',
+    closeBlogProgress: 'Close blog writer progress popup',
+    closeLayoutProgress: 'Close layout audit progress popup',
+    createWorkspaceAccess: 'Create workspace access',
+    welcomeBack: 'Welcome back',
+    registerTitle: 'Register for RankSprint.',
+    loginTitle: 'Log in to RankSprint.',
+    authCopy: 'Use email and password, or continue with Google once Firebase Authentication is configured.',
+    firebaseMissing: 'Firebase env values missing. Copy .env.example to .env.local, add your web app config, then enable Google in Firebase Authentication.',
+    googleClientMissing: 'Google client ID missing from .env.local.',
+    emailAccess: 'Email access',
+    name: 'Name',
+    email: 'Email',
+    password: 'Password',
+    passwordPlaceholder: 'At least 6 characters',
+    working: 'Working...',
+    createAccount: 'Create account',
+    alreadyHaveAccount: 'Already have an account? Log in',
+    needAccount: 'Need an account? Register',
   },
   hu: {
     home: 'Kezd\u0151lap',
@@ -89,6 +221,138 @@ const copy = {
     profilePicture: 'Profilk\u00e9p',
     saveProfile: 'Profil ment\u00e9se',
     usernameLimit: 'A felhaszn\u00e1l\u00f3n\u00e9v havonta 2 alkalommal m\u00f3dos\u00edthat\u00f3.',
+    administrator: 'Adminisztr\u00e1tor',
+    alerts: '\u00c9rtes\u00edt\u00e9sek megnyit\u00e1sa',
+    heroEyebrow: 'Egyszer szkennelj. L\u00e1sd, merre mozdul a keresleti figyelem.',
+    heroTitle: 'Audit\u00e1lj b\u00e1rmilyen weboldalt, majd hasonl\u00edtsd \u00f6ssze a SEO \u00e9s AI keres\u00e9si l\u00e1that\u00f3s\u00e1got a piaccal.',
+    heroBody: 'A RankSprint el\u0151fizet\u00e9ses munkafel\u00fclet csapatoknak: URL szkennel\u00e9s, versenyt\u00e1rs-keres\u00e9s, GEO l\u00e1that\u00f3s\u00e1g \u00e9s profi riportok egy helyen.',
+    openProjects: 'Projektek megnyit\u00e1sa',
+    viewPrices: '\u00c1rak megtekint\u00e9se',
+    introTitle: 'A nyilv\u00e1nos oldal most a term\u00e9k t\u00f6rt\u00e9net\u00e9re f\u00f3kusz\u00e1l.',
+    introBody: 'A statisztik\u00e1k, versenyt\u00e1rs eszk\u00f6z\u00f6k \u00e9s elemz\u00e9sek projekt dashboardokban vannak, \u00edgy a f\u0151oldal tiszt\u00e1n mutatja az aj\u00e1nlatot \u00e9s a munkater\u00fclet fel\u00e9 visz.',
+    pricingTitle: 'El\u0151fizet\u00e9si csomagok keres\u00e9si l\u00e1that\u00f3s\u00e1gi munk\u00e1hoz.',
+    pricingBody: 'Hozz l\u00e9tre projekteket, futtass versenyt\u00e1rs-keres\u00e9st, \u00e9s export\u00e1lj riportokat tart\u00f3s fi\u00f3k munkater\u00fcletr\u0151l. A NullTek adminok teljes hozz\u00e1f\u00e9r\u00e9st kapnak.',
+    starter: 'Kezd\u0151',
+    growth: 'N\u00f6veked\u00e9s',
+    studio: 'St\u00fadi\u00f3',
+    starterPoints: ['3 projekt', '10 szkennel\u00e9s', 'Alap exportok'],
+    growthPoints: ['25 projekt', 'Versenyt\u00e1rs-k\u00f6vet\u00e9s', 'GEO riportok'],
+    studioPoints: ['Korl\u00e1tlan felhaszn\u00e1l\u00f3', 'White-label riportok', 'Priorit\u00e1sos crawl sor'],
+    choosePlan: 'Csomag v\u00e1laszt\u00e1sa',
+    unlockedForNulltek: 'NullTeknek feloldva',
+    footerTitle: 'Kezdj projekttel, majd minden munkafolyamatot a dashboardban futtass.',
+    projectsEyebrow: 'Projektek',
+    projectsTitle: 'V\u00e1lassz munkater\u00fcletet vagy hozz l\u00e9tre \u00faj projektet.',
+    apiAccess: 'OpenAI API hozz\u00e1f\u00e9r\u00e9s',
+    apiAccessBody: 'Minden funkci\u00f3 saj\u00e1t kulcsmez\u0151t kap. A j\u00f6v\u0151beli funkci\u00f3khoz ide ker\u00fcl \u00faj mez\u0151.',
+    configured: 'Be\u00e1ll\u00edtva',
+    missing: 'Hi\u00e1nyzik',
+    effort: 'er\u0151fesz\u00edt\u00e9s',
+    saveKey: 'Kulcs ment\u00e9se',
+    adminOnlyKeys: 'Csak a NullTek adminisztr\u00e1tor adhat hozz\u00e1 vagy cser\u00e9lhet funkci\u00f3 API kulcsokat.',
+    createProject: 'Projekt l\u00e9trehoz\u00e1sa',
+    createProjectBody: 'A n\u00e9v \u00e9s a weboldal k\u00f6telez\u0151. A le\u00edr\u00e1s \u00e9s k\u00e9p opcion\u00e1lis.',
+    projectName: 'Projekt neve',
+    projectDescription: 'Projekt le\u00edr\u00e1sa',
+    projectImageUrl: 'Projekt k\u00e9p URL',
+    websiteUrl: 'Weboldal URL',
+    projectNamePlaceholder: 'NullTek n\u00f6veked\u00e9si audit',
+    projectDescriptionPlaceholder: 'R\u00f6vid \u00fczleti kontextus, piac, \u00fcgyfelek vagy aj\u00e1nlat.',
+    listedProjects: 'List\u00e1zott projektek',
+    listedProjectsBody: 'V\u00e1lassz egyet a dashboard megnyit\u00e1s\u00e1hoz.',
+    noProjects: 'M\u00e9g nincs projekt.',
+    leftThisMonth: 'maradt ebben a h\u00f3napban.',
+    backToProjects: 'Vissza a projektekhez',
+    details: 'R\u00e9szletek',
+    competitorSearch: 'Versenyt\u00e1rs keres\u00e9s',
+    seoAnalysis: 'SEO elemz\u00e9s',
+    blogWriter: 'Blog \u00edr\u00f3',
+    layoutAudit: 'Layout audit',
+    analytics: 'Analitika',
+    noProjectDescription: 'M\u00e9g nincs projektle\u00edr\u00e1s.',
+    website: 'Weboldal',
+    competitorKey: 'Versenyt\u00e1rs kulcs',
+    seoKey: 'SEO kulcs',
+    blogKey: 'Blog kulcs',
+    layoutAuditKey: 'Layout audit kulcs',
+    connected: 'Csatlakoztatva',
+    competitors: 'Versenyt\u00e1rsak',
+    competitorTitle: 'Versenyt\u00e1rs v\u00e1llalkoz\u00e1sok keres\u00e9se ehhez: {project}.',
+    source: 'Forr\u00e1s',
+    openAiLiveSearch: '\u00c9l\u0151 OpenAI keres\u00e9s',
+    fallbackPlaceholders: 'tartal\u00e9k mintaadatok',
+    competitorRunning: 'Versenyt\u00e1rs keres\u00e9s fut',
+    searchCompetitors: 'Versenyt\u00e1rsak keres\u00e9se',
+    noCompetitors: 'M\u00e9g nincs versenyt\u00e1rs keres\u00e9s.',
+    seoTitle: '{project} elemz\u00e9se SEO szab\u00e1lyok \u00e9s versenyt\u00e1rsak alapj\u00e1n.',
+    seoRunning: 'SEO elemz\u00e9s fut',
+    runSeo: 'SEO elemz\u00e9s futtat\u00e1sa',
+    seoScore: 'SEO pontsz\u00e1m',
+    noSummary: 'Nincs el\u00e9rhet\u0151 \u00f6sszefoglal\u00f3.',
+    downloadTwoPagePdf: '2 oldalas PDF let\u00f6lt\u00e9se',
+    basicSeoRules: 'Alap SEO szab\u00e1lyok',
+    competitorComparison: 'Versenyt\u00e1rs \u00f6sszehasonl\u00edt\u00e1s',
+    recommendations: 'Javaslatok',
+    noSeo: 'M\u00e9g nincs SEO elemz\u00e9s.',
+    blogTitle: 'Trend-alap\u00fa cikk \u00edr\u00e1sa ehhez: {project}.',
+    blogRunning: 'Blog/h\u00edr \u00edr\u00f3 fut',
+    writeArticle: 'Cikk \u00edr\u00e1sa',
+    untitledPost: 'C\u00edm n\u00e9lk\u00fcli poszt',
+    liveTrendDraft: '\u00c9l\u0151 trend v\u00e1zlat',
+    placeholderDraft: 'Minta v\u00e1zlat',
+    trendAngle: 'Trend sz\u00f6g',
+    competitorAngles: 'Versenyt\u00e1rs sz\u00f6gek',
+    postText: 'Poszt sz\u00f6veg',
+    layoutTitle: 'Mobil, laptop, m\u00e1rka \u00e9s layout min\u0151s\u00e9g ellen\u0151rz\u00e9se ehhez: {project}.',
+    layoutRunning: 'Reszponz\u00edv layout audit fut',
+    runLayoutAudit: 'Layout audit futtat\u00e1sa',
+    liveResponsiveAudit: '\u00c9l\u0151 reszponz\u00edv audit',
+    placeholderAudit: 'Minta audit',
+    downloadFullPdf: 'Teljes PDF let\u00f6lt\u00e9se',
+    mobileLayout: 'Mobil layout',
+    laptopLayout: 'Laptop layout',
+    responsiveness: 'Reszponzivit\u00e1s',
+    brandingIssues: 'M\u00e1rka probl\u00e9m\u00e1k',
+    fix: 'Jav\u00edt\u00e1s',
+    quickWins: 'Gyors nyeres\u00e9gek',
+    noLayoutAudit: 'M\u00e9g nincs reszponz\u00edv layout audit.',
+    analyticsTitle: 'Projekt statisztik\u00e1k \u00e9s riport jelek itt jelennek meg.',
+    competitorsFound: 'Tal\u00e1lt versenyt\u00e1rsak',
+    dataSource: 'Adatforr\u00e1s',
+    reportsSaved: 'Mentett riportok',
+    latestArticle: 'Legut\u00f3bbi cikk',
+    layoutScore: 'Layout pontsz\u00e1m',
+    none: 'Nincs',
+    analyticsShellTitle: 'Az analitika oldal k\u00e9szen \u00e1ll SEO \u00e9s GEO statisztik\u00e1kra.',
+    analyticsShellBody: 'Itt jelennek majd meg a l\u00e1that\u00f3s\u00e1gi grafikonok, versenyt\u00e1rs elt\u00e9r\u00e9sek, riport el\u0151zm\u00e9nyek \u00e9s szkennel\u00e9si statisztik\u00e1k a kiv\u00e1lasztott projekthez.',
+    saveAnalyticsPdf: 'Analitika PDF ment\u00e9se',
+    competitorProfile: 'Versenyt\u00e1rs profil',
+    noDescription: 'M\u00e9g nincs le\u00edr\u00e1s.',
+    locationNotFound: 'Hely nem tal\u00e1lhat\u00f3',
+    emailNotFound: 'Email nem tal\u00e1lhat\u00f3',
+    phoneNotFound: 'Telefon nem tal\u00e1lhat\u00f3',
+    websiteNotFound: 'Weboldal nem tal\u00e1lhat\u00f3',
+    savedPost: 'Mentett poszt',
+    closeProgress: 'Folyamat ablak bez\u00e1r\u00e1sa',
+    closeSeoProgress: 'SEO folyamat ablak bez\u00e1r\u00e1sa',
+    closeBlogProgress: 'Blog \u00edr\u00f3 folyamat ablak bez\u00e1r\u00e1sa',
+    closeLayoutProgress: 'Layout audit folyamat ablak bez\u00e1r\u00e1sa',
+    createWorkspaceAccess: 'Munkater\u00fclet hozz\u00e1f\u00e9r\u00e9s l\u00e9trehoz\u00e1sa',
+    welcomeBack: '\u00dcdv \u00fajra',
+    registerTitle: 'Regisztr\u00e1ci\u00f3 a RankSprintbe.',
+    loginTitle: 'Bejelentkez\u00e9s a RankSprintbe.',
+    authCopy: 'Haszn\u00e1lj emailt \u00e9s jelsz\u00f3t, vagy folytasd Google-lel, ha a Firebase Authentication be van \u00e1ll\u00edtva.',
+    firebaseMissing: 'Hi\u00e1nyoznak a Firebase k\u00f6rnyezeti \u00e9rt\u00e9kek. M\u00e1sold a .env.example f\u00e1jlt .env.local n\u00e9ven, add meg a web app configot, majd enged\u00e9lyezd a Google-t a Firebase Authenticationben.',
+    googleClientMissing: 'Hi\u00e1nyzik a Google client ID a .env.local f\u00e1jlb\u00f3l.',
+    emailAccess: 'Email hozz\u00e1f\u00e9r\u00e9s',
+    name: 'N\u00e9v',
+    email: 'Email',
+    password: 'Jelsz\u00f3',
+    passwordPlaceholder: 'Legal\u00e1bb 6 karakter',
+    working: 'Dolgozik...',
+    createAccount: 'Fi\u00f3k l\u00e9trehoz\u00e1sa',
+    alreadyHaveAccount: 'M\u00e1r van fi\u00f3kod? Jelentkezz be',
+    needAccount: 'Kell fi\u00f3k? Regisztr\u00e1lj',
   },
 }
 
@@ -133,6 +397,13 @@ function visualDataUri(title, variant = 0) {
   `
 
   return `data:image/svg+xml,${encodeURIComponent(svg)}`
+}
+
+function interpolate(text, values = {}) {
+  return Object.entries(values).reduce(
+    (current, [key, value]) => current.replaceAll(`{${key}}`, value),
+    text,
+  )
 }
 
 async function apiRequest(path, options = {}) {
@@ -555,11 +826,13 @@ async function downloadAnalyticsPdf(project, competitors, seoAnalysis, articleDr
 
 function App() {
   const rootRef = useRef(null)
+  const didMountThemeRef = useRef(false)
   const [authMode, setAuthMode] = useState(null)
   const [user, setUser] = useState(null)
   const [screen, setScreen] = useState('home')
   const [dashboardTab, setDashboardTab] = useState('details')
   const [themeMode, setThemeMode] = useState(() => window.localStorage.getItem('ranksprint_theme') || 'light')
+  const [themeTransitioning, setThemeTransitioning] = useState(false)
   const [language, setLanguage] = useState(() => window.localStorage.getItem('ranksprint_language') || 'en')
   const [actionStatus, setActionStatus] = useState('Ready to save scans and reports')
   const [savedReports, setSavedReports] = useState([])
@@ -594,13 +867,20 @@ function App() {
   )
   const activeProject = projects.find((project) => project.id === activeProjectId) || projects[0] || null
   const t = copy[language] || copy.en
-  const competitorSearchKey = openAiStatus.features.find((feature) => feature.id === 'competitor_search')
+  const configuredFeatures = openAiStatus.features || []
+  const featureLabel = (feature) => ({
+    competitor_search: t.competitorSearch,
+    seo_analysis: t.seoAnalysis,
+    blog_writer: t.blogWriter,
+    layout_audit: t.layoutAudit,
+  })[feature.id] || feature.label
+  const competitorSearchKey = configuredFeatures.find((feature) => feature.id === 'competitor_search')
   const competitorJob = featureJobs.competitor_search
-  const seoAnalysisKey = openAiStatus.features.find((feature) => feature.id === 'seo_analysis')
+  const seoAnalysisKey = configuredFeatures.find((feature) => feature.id === 'seo_analysis')
   const seoJob = featureJobs.seo_analysis
-  const blogWriterKey = openAiStatus.features.find((feature) => feature.id === 'blog_writer')
+  const blogWriterKey = configuredFeatures.find((feature) => feature.id === 'blog_writer')
   const blogJob = featureJobs.blog_writer
-  const layoutAuditKey = openAiStatus.features.find((feature) => feature.id === 'layout_audit')
+  const layoutAuditKey = configuredFeatures.find((feature) => feature.id === 'layout_audit')
   const layoutJob = featureJobs.layout_audit
   const showCompetitorMiniProgress = Boolean(
     competitorJob
@@ -631,6 +911,13 @@ function App() {
 
   useEffect(() => {
     window.localStorage.setItem('ranksprint_theme', themeMode)
+    if (!didMountThemeRef.current) {
+      didMountThemeRef.current = true
+      return undefined
+    }
+    setThemeTransitioning(true)
+    const timer = window.setTimeout(() => setThemeTransitioning(false), 720)
+    return () => window.clearTimeout(timer)
   }, [themeMode])
 
   useEffect(() => {
@@ -1149,7 +1436,7 @@ function App() {
   )
 
   return (
-    <main ref={rootRef} className={`app-shell overflow-guard theme-${themeMode}`}>
+    <main ref={rootRef} className={`app-shell overflow-guard theme-${themeMode}${themeTransitioning ? ' theme-transitioning' : ''}`}>
       <nav className="nav-shell">
         <button className="brand brand-button" type="button" aria-label="RankSprint home" onClick={() => setScreen('home')}>
           <img className="brand-logo" src="/ranksprint-logo.svg" alt="RankSprint" />
@@ -1161,14 +1448,14 @@ function App() {
           <a href="#pricing" onClick={() => setScreen('home')}>{t.pricing}</a>
         </div>
         <div className="nav-actions">
-          <button className="icon-button" type="button" aria-label="Open alerts">
+          <button className="icon-button" type="button" aria-label={t.alerts}>
             <Bell size={18} />
           </button>
           {user ? (
             <div className="user-chip">
               <span>{user.displayName || user.email}</span>
-              {isAdministrator ? <small>Administrator</small> : null}
-              <button className="icon-button" type="button" aria-label="Log out" onClick={logout}>
+              {isAdministrator ? <small>{t.administrator}</small> : null}
+              <button className="icon-button" type="button" aria-label={t.logout} onClick={logout}>
                 <LogOut size={18} />
               </button>
             </div>
@@ -1188,25 +1475,22 @@ function App() {
       </nav>
 
       {screen === 'home' ? (
-        <>
+        <div className="page-transition" key={`home-${language}`}>
           <section id="top" className="hero-section">
             <div className="hero-art" aria-hidden="true">
               <img src={visualDataUri('RankSprint visibility map', 0)} alt="" />
             </div>
             <div className="hero-copy">
-              <p className="eyebrow">Scan once. Decide where search demand moves next.</p>
-              <h1>Audit any website, then compare SEO and AI search visibility against the market.</h1>
-              <p className="hero-body">
-                RankSprint is a subscription workspace for teams that need URL scanning,
-                competitor discovery, GEO visibility analysis, and polished reports from one product surface.
-              </p>
+              <p className="eyebrow">{t.heroEyebrow}</p>
+              <h1>{t.heroTitle}</h1>
+              <p className="hero-body">{t.heroBody}</p>
               <div className="hero-actions">
                 <button className="button light large" type="button" onClick={() => setScreen('projects')}>
-                  Open projects
+                  {t.openProjects}
                   <ArrowRight size={18} />
                 </button>
                 <a className="button dark large" href="#pricing">
-                  View prices
+                  {t.viewPrices}
                 </a>
               </div>
             </div>
@@ -1214,27 +1498,21 @@ function App() {
 
           <section className="interest-section landing-intro">
             <div className="section-copy">
-              <h2>The public page now stays focused on the product story.</h2>
-              <p>
-                Statistics, competitor tools, and analytics live inside project dashboards so the
-                homepage can explain the offer and push users into their workspace cleanly.
-              </p>
+              <h2>{t.introTitle}</h2>
+              <p>{t.introBody}</p>
             </div>
           </section>
 
           <section id="pricing" className="pricing-section">
             <div className="pricing-copy">
-              <h2>Subscription plans for search visibility work.</h2>
-              <p>
-                Create projects, run competitor discovery, and unlock exports from a persistent
-                account workspace. NullTek administrators keep full access.
-              </p>
+              <h2>{t.pricingTitle}</h2>
+              <p>{t.pricingBody}</p>
             </div>
             <div className="pricing-grid">
               {[
-                ['Starter', '$29', ['3 projects', '10 scans', 'Basic exports']],
-                ['Growth', '$89', ['25 projects', 'Competitor tracking', 'GEO reports']],
-                ['Studio', '$249', ['Unlimited seats', 'White-label reports', 'Priority crawl queue']],
+                [t.starter, '$29', t.starterPoints],
+                [t.growth, '$89', t.growthPoints],
+                [t.studio, '$249', t.studioPoints],
               ].map(([plan, price, points]) => (
                 <article className="price-card" key={plan}>
                   <CircleDollarSign size={22} />
@@ -1246,8 +1524,8 @@ function App() {
                       {point}
                     </p>
                   ))}
-                  <button className={plan === 'Growth' ? 'button light' : 'button dark'} type="button" onClick={() => setScreen('projects')}>
-                    {isAdministrator ? 'Unlocked for NullTek' : 'Choose plan'}
+                  <button className={plan === t.growth ? 'button light' : 'button dark'} type="button" onClick={() => setScreen('projects')}>
+                    {isAdministrator ? t.unlockedForNulltek : t.choosePlan}
                   </button>
                 </article>
               ))}
@@ -1257,22 +1535,22 @@ function App() {
           <footer className="footer-section">
             <div>
               <ShieldCheck size={26} />
-              <h2>Start with a project, then run every workflow in its dashboard.</h2>
+              <h2>{t.footerTitle}</h2>
             </div>
             <div className="footer-links">
-              <button type="button" onClick={() => setScreen('home')}>Product</button>
-              <button type="button" onClick={() => setScreen('projects')}>Projects</button>
-              <a href="#pricing">Pricing</a>
+              <button type="button" onClick={() => setScreen('home')}>RankSprint</button>
+              <button type="button" onClick={() => setScreen('projects')}>{t.projects}</button>
+              <a href="#pricing">{t.pricing}</a>
             </div>
           </footer>
-        </>
+        </div>
       ) : null}
 
       {screen === 'projects' ? (
-        <section className="projects-page">
+        <section className="projects-page page-transition" key={`projects-${language}`}>
           <div className="page-heading">
-            <p className="eyebrow">Projects</p>
-            <h1>Choose a workspace or create a new project.</h1>
+            <p className="eyebrow">{t.projectsEyebrow}</p>
+            <h1>{t.projectsTitle}</h1>
             <p>{actionStatus}</p>
           </div>
 
@@ -1283,20 +1561,18 @@ function App() {
                   <KeyRound size={20} />
                 </span>
                 <div>
-                  <h3>OpenAI API access</h3>
-                  <p>
-                    Every feature gets its own key slot. Future features should add a new text field here.
-                  </p>
+                  <h3>{t.apiAccess}</h3>
+                  <p>{t.apiAccessBody}</p>
                 </div>
               </div>
               {isAdministrator ? (
                 <div className="feature-key-list">
-                  {openAiStatus.features.map((feature) => (
+                  {configuredFeatures.map((feature) => (
                     <form className="feature-key-form" key={feature.id} onSubmit={(event) => saveOpenAiKey(event, feature.id)}>
                       <div>
-                        <strong>{feature.label}</strong>
+                        <strong>{featureLabel(feature)}</strong>
                         <span>
-                          {feature.configured ? 'Configured' : 'Missing'} · {feature.model} · {feature.reasoningEffort} effort
+                          {feature.configured ? t.configured : t.missing} ? {feature.model} ? {feature.reasoningEffort} {t.effort}
                         </span>
                       </div>
                       <div className="api-key-form">
@@ -1305,7 +1581,7 @@ function App() {
                           value={openAiKeys[feature.id] || ''}
                           onChange={(event) => updateFeatureKey(feature.id, event.target.value)}
                           placeholder="sk-..."
-                          aria-label={`${feature.label} OpenAI API key`}
+                          aria-label={`${featureLabel(feature)} OpenAI API key`}
                           autoComplete="off"
                         />
                         <button
@@ -1314,7 +1590,7 @@ function App() {
                           disabled={openAiSavingFeature === feature.id || !(openAiKeys[feature.id] || '').trim()}
                         >
                           {openAiSavingFeature === feature.id ? <LoaderCircle size={17} className="spin-icon" /> : <KeyRound size={17} />}
-                          Save key
+                          {t.saveKey}
                         </button>
                       </div>
                     </form>
@@ -1323,7 +1599,7 @@ function App() {
               ) : (
                 <div className="admin-lock-note">
                   <LockKeyhole size={18} />
-                  Only the NullTek administrator can add or replace feature API keys.
+                  {t.adminOnlyKeys}
                 </div>
               )}
             </div>
@@ -1334,27 +1610,27 @@ function App() {
                   <Plus size={20} />
                 </span>
                 <div>
-                  <h3>Create project</h3>
-                  <p>Name and website are required. Description and image are optional.</p>
+                  <h3>{t.createProject}</h3>
+                  <p>{t.createProjectBody}</p>
                 </div>
               </div>
               <label>
-                <span>Project name</span>
-                <input name="name" value={projectForm.name} onChange={updateProjectField} placeholder="NullTek growth audit" required />
+                <span>{t.projectName}</span>
+                <input name="name" value={projectForm.name} onChange={updateProjectField} placeholder={t.projectNamePlaceholder} required />
               </label>
               <label>
-                <span>Project description</span>
-                <textarea name="description" value={projectForm.description} onChange={updateProjectField} placeholder="Short business context, market, customers, or offer." />
+                <span>{t.projectDescription}</span>
+                <textarea name="description" value={projectForm.description} onChange={updateProjectField} placeholder={t.projectDescriptionPlaceholder} />
               </label>
               <label>
-                <span>Project image URL</span>
+                <span>{t.projectImageUrl}</span>
                 <div className="field-shell">
                   <Image size={17} />
                   <input name="imageUrl" value={projectForm.imageUrl} onChange={updateProjectField} placeholder="https://..." />
                 </div>
               </label>
               <label>
-                <span>Website URL</span>
+                <span>{t.websiteUrl}</span>
                 <div className="field-shell">
                   <Globe2 size={17} />
                   <input name="websiteUrl" value={projectForm.websiteUrl} onChange={updateProjectField} placeholder="https://company.com" required />
@@ -1362,7 +1638,7 @@ function App() {
               </label>
               <button className="button light auth-submit" type="submit" disabled={projectBusy}>
                 {projectBusy ? <LoaderCircle size={17} className="spin-icon" /> : <Plus size={17} />}
-                Create project
+                {t.createProject}
               </button>
             </form>
 
@@ -1372,8 +1648,8 @@ function App() {
                   <Building2 size={20} />
                 </span>
                 <div>
-                  <h3>Listed projects</h3>
-                  <p>Select one to open its dashboard.</p>
+                  <h3>{t.listedProjects}</h3>
+                  <p>{t.listedProjectsBody}</p>
                 </div>
               </div>
               <div className="listed-projects">
@@ -1396,7 +1672,7 @@ function App() {
                 {!projects.length ? (
                   <div className="empty-competitors">
                     <Building2 size={22} />
-                    <p>No projects yet.</p>
+                    <p>{t.noProjects}</p>
                   </div>
                 ) : null}
               </div>
@@ -1406,7 +1682,7 @@ function App() {
       ) : null}
 
       {screen === 'settings' ? (
-        <section className="settings-page">
+        <section className="settings-page page-transition" key={`settings-${language}`}>
           <div className="page-heading">
             <p className="eyebrow">{t.settings}</p>
             <h1>{t.settingsTitle}</h1>
@@ -1464,7 +1740,7 @@ function App() {
                   <h3>{t.username}</h3>
                   <p>
                     {t.usernameLimit}
-                    {usernameChangesRemaining != null ? ` ${usernameChangesRemaining} left this month.` : ''}
+                    {usernameChangesRemaining != null ? ` ${usernameChangesRemaining} ${t.leftThisMonth}` : ''}
                   </p>
                 </div>
               </div>
@@ -1503,10 +1779,10 @@ function App() {
       ) : null}
 
       {screen === 'dashboard' && activeProject ? (
-        <section className="dashboard-shell">
+        <section className="dashboard-shell page-transition" key={`dashboard-${activeProject.id}-${language}`}>
           <aside className="dashboard-sidebar">
             <button className="button dark" type="button" onClick={() => setScreen('projects')}>
-              Back to projects
+              {t.backToProjects}
             </button>
             <div className="dashboard-project">
               <img src={activeProject.image_url || visualDataUri(activeProject.name, 2)} alt="" />
@@ -1515,13 +1791,13 @@ function App() {
             </div>
             <nav className="dashboard-nav" aria-label="Project dashboard navigation">
               {[
-                ['details', FileText],
-                ['competitor search', Search],
-                ['seo analysis', Globe2],
-                ['blog writer', Newspaper],
-                ['layout audit', MonitorSmartphone],
-                ['analytics', BarChart3],
-              ].map(([tab, Icon]) => (
+                ['details', FileText, t.details],
+                ['competitor search', Search, t.competitorSearch],
+                ['seo analysis', Globe2, t.seoAnalysis],
+                ['blog writer', Newspaper, t.blogWriter],
+                ['layout audit', MonitorSmartphone, t.layoutAudit],
+                ['analytics', BarChart3, t.analytics],
+              ].map(([tab, Icon, label]) => (
                 <button
                   className={dashboardTab === tab ? 'active' : ''}
                   type="button"
@@ -1543,7 +1819,7 @@ function App() {
                   }}
                 >
                   <Icon size={18} />
-                  {tab}
+                  {label}
                   {tab === 'competitor search' && unreadFeatureDots.competitor_search ? <span className="nav-done-dot" /> : null}
                   {tab === 'seo analysis' && unreadFeatureDots.seo_analysis ? <span className="nav-done-dot" /> : null}
                   {tab === 'blog writer' && unreadFeatureDots.blog_writer ? <span className="nav-done-dot" /> : null}
@@ -1553,35 +1829,35 @@ function App() {
             </nav>
           </aside>
 
-          <div className="dashboard-content">
+          <div className="dashboard-content" key={`${dashboardTab}-${language}`}>
             {dashboardTab === 'details' ? (
               <div className="dashboard-panel">
-                <p className="eyebrow">Details</p>
+                <p className="eyebrow">{t.details}</p>
                 <h1>{activeProject.name}</h1>
-                <p>{activeProject.description || 'No project description added yet.'}</p>
+                <p>{activeProject.description || t.noProjectDescription}</p>
                 <div className="analytics-grid">
                   <article className="analytics-card full-row-card">
-                    <span>Website</span>
+                    <span>{t.website}</span>
                     <strong>{activeProject.website_url}</strong>
                   </article>
                   <article className="analytics-card">
-                    <span>Competitor key</span>
-                    <strong>{competitorSearchKey?.configured ? 'Connected' : 'Missing'}</strong>
+                    <span>{t.competitorKey}</span>
+                    <strong>{competitorSearchKey?.configured ? t.connected : t.missing}</strong>
                   </article>
                   <article className="analytics-card">
-                    <span>SEO key</span>
-                    <strong>{seoAnalysisKey?.configured ? 'Connected' : 'Missing'}</strong>
+                    <span>{t.seoKey}</span>
+                    <strong>{seoAnalysisKey?.configured ? t.connected : t.missing}</strong>
                   </article>
                   <article className="analytics-card">
-                    <span>Blog key</span>
-                    <strong>{blogWriterKey?.configured ? 'Connected' : 'Missing'}</strong>
+                    <span>{t.blogKey}</span>
+                    <strong>{blogWriterKey?.configured ? t.connected : t.missing}</strong>
                   </article>
                   <article className="analytics-card">
-                    <span>Layout audit key</span>
-                    <strong>{layoutAuditKey?.configured ? 'Connected' : 'Missing'}</strong>
+                    <span>{t.layoutAuditKey}</span>
+                    <strong>{layoutAuditKey?.configured ? t.connected : t.missing}</strong>
                   </article>
                   <article className="analytics-card">
-                    <span>Competitors</span>
+                    <span>{t.competitors}</span>
                     <strong>{competitors.length}</strong>
                   </article>
                 </div>
@@ -1590,13 +1866,13 @@ function App() {
 
             {dashboardTab === 'competitor search' ? (
               <div className="dashboard-panel">
-                <p className="eyebrow">Competitor search</p>
-                <h1>Find competing businesses for {activeProject.name}.</h1>
-                <p>{competitorSource ? `Source: ${competitorSource === 'openai' ? 'OpenAI live search' : 'fallback placeholders'}` : actionStatus}</p>
+                <p className="eyebrow">{t.competitorSearch}</p>
+                <h1>{interpolate(t.competitorTitle, { project: activeProject.name })}</h1>
+                <p>{competitorSource ? `${t.source}: ${competitorSource === 'openai' ? t.openAiLiveSearch : t.fallbackPlaceholders}` : actionStatus}</p>
                 {competitorJob?.status === 'running' ? (
                   <div className="feature-progress">
                     <div className="feature-progress-meta">
-                      <span>Competitor search running</span>
+                      <span>{t.competitorRunning}</span>
                       <strong>{competitorJob.progress}%</strong>
                     </div>
                     <div className="feature-progress-track">
@@ -1606,7 +1882,7 @@ function App() {
                 ) : null}
                 <button className="button light large competitor-search" type="button" onClick={searchCompetitors} disabled={projectBusy}>
                   {projectBusy ? <LoaderCircle size={18} className="spin-icon" /> : <Search size={18} />}
-                  Search competitors
+                  {t.searchCompetitors}
                 </button>
                 <div className="competitor-list">
                   {competitors.map((competitor) => (
@@ -1618,7 +1894,7 @@ function App() {
                   {!competitors.length ? (
                     <div className="empty-competitors">
                       <Search size={22} />
-                      <p>No competitors searched yet.</p>
+                      <p>{t.noCompetitors}</p>
                     </div>
                   ) : null}
                 </div>
@@ -1627,13 +1903,13 @@ function App() {
 
             {dashboardTab === 'seo analysis' ? (
               <div className="dashboard-panel">
-                <p className="eyebrow">SEO analysis</p>
-                <h1>Analyze {activeProject.name} against SEO rules and competitors.</h1>
+                <p className="eyebrow">{t.seoAnalysis}</p>
+                <h1>{interpolate(t.seoTitle, { project: activeProject.name })}</h1>
                 <p>{actionStatus}</p>
                 {seoJob?.status === 'running' ? (
                   <div className="feature-progress">
                     <div className="feature-progress-meta">
-                      <span>SEO analysis running</span>
+                      <span>{t.seoRunning}</span>
                       <strong>{seoJob.progress}%</strong>
                     </div>
                     <div className="feature-progress-track">
@@ -1643,23 +1919,23 @@ function App() {
                 ) : null}
                 <button className="button light large competitor-search" type="button" onClick={runSeoAnalysis} disabled={projectBusy}>
                   {projectBusy ? <LoaderCircle size={18} className="spin-icon" /> : <Globe2 size={18} />}
-                  Run SEO analysis
+                  {t.runSeo}
                 </button>
 
                 {seoAnalysis ? (
                   <div className="seo-report">
                     <div className="seo-score-card">
-                      <span>SEO score</span>
+                      <span>{t.seoScore}</span>
                       <strong>{Number(seoAnalysis.payload?.score || 0).toFixed(1)}<small>/10</small></strong>
-                      <p>{seoAnalysis.payload?.summary || 'No summary available.'}</p>
+                      <p>{seoAnalysis.payload?.summary || t.noSummary}</p>
                       <button className="button light" type="button" onClick={() => downloadSeoPdf(activeProject, seoAnalysis)}>
                         <Download size={17} />
-                        Download 2-page PDF
+                        {t.downloadTwoPagePdf}
                       </button>
                     </div>
                     <div className="seo-section-grid">
                       <article>
-                        <h3>Basic SEO rules</h3>
+                        <h3>{t.basicSeoRules}</h3>
                         {(seoAnalysis.payload?.rules || []).map((rule) => (
                           <div className="seo-row" key={`${rule.rule}-${rule.finding}`}>
                             <span>{rule.rule}</span>
@@ -1669,7 +1945,7 @@ function App() {
                         ))}
                       </article>
                       <article>
-                        <h3>Competitor comparison</h3>
+                        <h3>{t.competitorComparison}</h3>
                         {(seoAnalysis.payload?.competitorComparison || []).map((competitor) => (
                           <div className="seo-row" key={`${competitor.businessName}-${competitor.risk}`}>
                             <span>{competitor.businessName}</span>
@@ -1680,7 +1956,7 @@ function App() {
                       </article>
                     </div>
                     <article className="seo-recommendations">
-                      <h3>Recommendations</h3>
+                      <h3>{t.recommendations}</h3>
                       {(seoAnalysis.payload?.recommendations || []).map((recommendation) => (
                         <p key={recommendation}>
                           <Check size={16} />
@@ -1692,7 +1968,7 @@ function App() {
                 ) : (
                   <div className="empty-competitors">
                     <Globe2 size={22} />
-                    <p>No SEO analysis run yet.</p>
+                    <p>{t.noSeo}</p>
                   </div>
                 )}
               </div>
@@ -1700,13 +1976,13 @@ function App() {
 
             {dashboardTab === 'blog writer' ? (
               <div className="dashboard-panel">
-                <p className="eyebrow">Blog/news writer</p>
-                <h1>Write a trend-aware article for {activeProject.name}.</h1>
+                <p className="eyebrow">{t.blogWriter}</p>
+                <h1>{interpolate(t.blogTitle, { project: activeProject.name })}</h1>
                 <p>{actionStatus}</p>
                 {blogJob?.status === 'running' ? (
                   <div className="feature-progress">
                     <div className="feature-progress-meta">
-                      <span>Blog/news writer running</span>
+                      <span>{t.blogRunning}</span>
                       <strong>{blogJob.progress}%</strong>
                     </div>
                     <div className="feature-progress-track">
@@ -1716,7 +1992,7 @@ function App() {
                 ) : null}
                 <button className="button light large competitor-search" type="button" onClick={writeBlogArticle} disabled={projectBusy}>
                   {projectBusy ? <LoaderCircle size={18} className="spin-icon" /> : <Newspaper size={18} />}
-                  Write article
+                  {t.writeArticle}
                 </button>
 
                 <div className="article-workspace">
@@ -1724,7 +2000,7 @@ function App() {
                     <h3>{t.savedPosts}</h3>
                     {articleHistory.map((article) => (
                       <button type="button" key={article.id} onClick={() => setSelectedArticle(article)}>
-                        <span>{article.payload?.title || 'Untitled post'}</span>
+                        <span>{article.payload?.title || t.untitledPost}</span>
                         <small>{new Date(article.created_at).toLocaleDateString()}</small>
                       </button>
                     ))}
@@ -1734,17 +2010,17 @@ function App() {
                   {articleDraft ? (
                     <div className="article-report">
                       <article className="article-summary-card">
-                        <span>{t.latestPost} · {articleDraft.source === 'openai' ? 'Live trend draft' : 'Placeholder draft'}</span>
+                        <span>{t.latestPost} ? {articleDraft.source === 'openai' ? t.liveTrendDraft : t.placeholderDraft}</span>
                         <h2>{articleDraft.payload?.title}</h2>
                         <p>{articleDraft.payload?.excerpt}</p>
                         <small>{articleDraft.payload?.slug}</small>
                       </article>
                       <article className="article-trends-card">
-                        <h3>Trend angle</h3>
+                        <h3>{t.trendAngle}</h3>
                         <p>{articleDraft.payload?.trendSummary}</p>
                       </article>
                       <article className="article-trends-card">
-                        <h3>Competitor angles</h3>
+                        <h3>{t.competitorAngles}</h3>
                         {(articleDraft.payload?.competitorAngles || []).map((item) => (
                           <p key={`${item.businessName}-${item.angle}`}>
                             <strong>{item.businessName}</strong>
@@ -1753,7 +2029,7 @@ function App() {
                         ))}
                       </article>
                       <article className="article-body-card">
-                        <h3>Post text</h3>
+                        <h3>{t.postText}</h3>
                         <pre>{articleDraft.payload?.postText}</pre>
                         <p className="article-cta">{articleDraft.payload?.callToAction}</p>
                       </article>
@@ -1770,13 +2046,13 @@ function App() {
 
             {dashboardTab === 'layout audit' ? (
               <div className="dashboard-panel">
-                <p className="eyebrow">Responsive layout audit</p>
-                <h1>Check mobile, laptop, brand, and layout quality for {activeProject.name}.</h1>
+                <p className="eyebrow">{t.layoutAudit}</p>
+                <h1>{interpolate(t.layoutTitle, { project: activeProject.name })}</h1>
                 <p>{actionStatus}</p>
                 {layoutJob?.status === 'running' ? (
                   <div className="feature-progress">
                     <div className="feature-progress-meta">
-                      <span>Responsive layout audit running</span>
+                      <span>{t.layoutRunning}</span>
                       <strong>{layoutJob.progress}%</strong>
                     </div>
                     <div className="feature-progress-track">
@@ -1786,70 +2062,70 @@ function App() {
                 ) : null}
                 <button className="button light large competitor-search" type="button" onClick={runLayoutAudit} disabled={projectBusy}>
                   {projectBusy ? <LoaderCircle size={18} className="spin-icon" /> : <MonitorSmartphone size={18} />}
-                  Run layout audit
+                  {t.runLayoutAudit}
                 </button>
 
                 {layoutAudit ? (
                   <div className="seo-report layout-audit-report">
                     <div className="seo-score-card">
-                      <span>{layoutAudit.source === 'openai' ? 'Live responsive audit' : 'Placeholder audit'}</span>
+                      <span>{layoutAudit.source === 'openai' ? t.liveResponsiveAudit : t.placeholderAudit}</span>
                       <strong>{Number(layoutAudit.payload?.score || 0).toFixed(1)}<small>/10</small></strong>
-                      <p>{layoutAudit.payload?.summary || 'No summary available.'}</p>
+                      <p>{layoutAudit.payload?.summary || t.noSummary}</p>
                       <button className="button light" type="button" onClick={() => downloadLayoutAuditPdf(activeProject, layoutAudit)}>
                         <Download size={17} />
-                        Download full PDF
+                        {t.downloadFullPdf}
                       </button>
                     </div>
                     <div className="seo-section-grid">
                       <article>
-                        <h3>Mobile layout</h3>
+                        <h3>{t.mobileLayout}</h3>
                         {(layoutAudit.payload?.mobile || []).map((item) => (
                           <div className="seo-row" key={`${item.title}-${item.finding}`}>
                             <span>{item.title}</span>
                             <strong>{item.severity}</strong>
                             <p>{item.finding}</p>
-                            <p><b>Fix:</b> {item.fix}</p>
+                            <p><b>{t.fix}:</b> {item.fix}</p>
                           </div>
                         ))}
                       </article>
                       <article>
-                        <h3>Laptop layout</h3>
+                        <h3>{t.laptopLayout}</h3>
                         {(layoutAudit.payload?.laptop || []).map((item) => (
                           <div className="seo-row" key={`${item.title}-${item.finding}`}>
                             <span>{item.title}</span>
                             <strong>{item.severity}</strong>
                             <p>{item.finding}</p>
-                            <p><b>Fix:</b> {item.fix}</p>
+                            <p><b>{t.fix}:</b> {item.fix}</p>
                           </div>
                         ))}
                       </article>
                     </div>
                     <div className="seo-section-grid">
                       <article>
-                        <h3>Responsiveness</h3>
+                        <h3>{t.responsiveness}</h3>
                         {(layoutAudit.payload?.responsiveness || []).map((item) => (
                           <div className="seo-row" key={`${item.title}-${item.finding}`}>
                             <span>{item.title}</span>
                             <strong>{item.severity}</strong>
                             <p>{item.finding}</p>
-                            <p><b>Fix:</b> {item.fix}</p>
+                            <p><b>{t.fix}:</b> {item.fix}</p>
                           </div>
                         ))}
                       </article>
                       <article>
-                        <h3>Branding issues</h3>
+                        <h3>{t.brandingIssues}</h3>
                         {(layoutAudit.payload?.brandingIssues || []).map((item) => (
                           <div className="seo-row" key={`${item.title}-${item.finding}`}>
                             <span>{item.title}</span>
                             <strong>{item.severity}</strong>
                             <p>{item.finding}</p>
-                            <p><b>Fix:</b> {item.fix}</p>
+                            <p><b>{t.fix}:</b> {item.fix}</p>
                           </div>
                         ))}
                       </article>
                     </div>
                     <article className="seo-recommendations">
-                      <h3>Quick wins</h3>
+                      <h3>{t.quickWins}</h3>
                       {(layoutAudit.payload?.quickWins || []).map((win) => (
                         <p key={win}>
                           <Check size={16} />
@@ -1861,7 +2137,7 @@ function App() {
                 ) : (
                   <div className="empty-competitors">
                     <MonitorSmartphone size={22} />
-                    <p>No responsive layout audit run yet.</p>
+                    <p>{t.noLayoutAudit}</p>
                   </div>
                 )}
               </div>
@@ -1869,45 +2145,42 @@ function App() {
 
             {dashboardTab === 'analytics' ? (
               <div className="dashboard-panel">
-                <p className="eyebrow">Analytics</p>
-                <h1>Project statistics and report signals stay here.</h1>
+                <p className="eyebrow">{t.analytics}</p>
+                <h1>{t.analyticsTitle}</h1>
                 <div className="analytics-grid">
                   <article className="analytics-card">
-                    <span>Competitors found</span>
+                    <span>{t.competitorsFound}</span>
                     <strong>{competitors.length}</strong>
                   </article>
                   <article className="analytics-card">
-                    <span>Data source</span>
-                    <strong>{competitorSource || 'None'}</strong>
+                    <span>{t.dataSource}</span>
+                    <strong>{competitorSource || t.none}</strong>
                   </article>
                   <article className="analytics-card">
-                    <span>Reports saved</span>
+                    <span>{t.reportsSaved}</span>
                     <strong>{savedReports.length}</strong>
                   </article>
                   <article className="analytics-card">
-                    <span>SEO score</span>
-                    <strong>{seoAnalysis?.payload?.score != null ? `${Number(seoAnalysis.payload.score).toFixed(1)}/10` : 'None'}</strong>
+                    <span>{t.seoScore}</span>
+                    <strong>{seoAnalysis?.payload?.score != null ? `${Number(seoAnalysis.payload.score).toFixed(1)}/10` : t.none}</strong>
                   </article>
                   <article className="analytics-card">
-                    <span>Latest article</span>
-                    <strong>{articleDraft?.payload?.title || 'None'}</strong>
+                    <span>{t.latestArticle}</span>
+                    <strong>{articleDraft?.payload?.title || t.none}</strong>
                   </article>
                   <article className="analytics-card">
-                    <span>Layout score</span>
-                    <strong>{layoutAudit?.payload?.score != null ? `${Number(layoutAudit.payload.score).toFixed(1)}/10` : 'None'}</strong>
+                    <span>{t.layoutScore}</span>
+                    <strong>{layoutAudit?.payload?.score != null ? `${Number(layoutAudit.payload.score).toFixed(1)}/10` : t.none}</strong>
                   </article>
                 </div>
                 <div className="analytics-panel">
                   <div>
                     <BarChart3 size={24} />
-                    <h2>Analytics page shell ready for SEO and GEO statistics.</h2>
-                    <p>
-                      This tab is where visibility charts, competitor deltas, report history,
-                      and scan statistics will live for the selected project.
-                    </p>
+                    <h2>{t.analyticsShellTitle}</h2>
+                    <p>{t.analyticsShellBody}</p>
                   </div>
                   <button className="button light large" type="button" onClick={saveAnalyticsPdf}>
-                    Save analytics PDF
+                    {t.saveAnalyticsPdf}
                     <Download size={18} />
                   </button>
                 </div>
@@ -1922,34 +2195,35 @@ function App() {
           mode={authMode}
           onClose={() => setAuthMode(null)}
           onModeChange={setAuthMode}
+          t={t}
         />
       ) : null}
 
       {selectedCompetitor ? (
         <div className="auth-backdrop" role="presentation">
           <section className="competitor-modal" role="dialog" aria-modal="true" aria-labelledby="competitor-title">
-            <button className="auth-close" type="button" aria-label="Close competitor details" onClick={() => setSelectedCompetitor(null)}>
+            <button className="auth-close" type="button" aria-label={t.competitorProfile} onClick={() => setSelectedCompetitor(null)}>
               <X size={19} />
             </button>
             <div className="competitor-modal-art" aria-hidden="true">
               <img src={visualDataUri(selectedCompetitor.business_name || 'Competitor profile', 1)} alt="" />
             </div>
             <div className="competitor-modal-body">
-              <p className="auth-kicker">Competitor profile</p>
+              <p className="auth-kicker">{t.competitorProfile}</p>
               <h2 id="competitor-title">{selectedCompetitor.business_name}</h2>
-              <p>{selectedCompetitor.description || 'No description found yet.'}</p>
+              <p>{selectedCompetitor.description || t.noDescription}</p>
               <div className="competitor-details">
                 <span>
                   <MapPin size={17} />
-                  {selectedCompetitor.location || 'Location not found'}
+                  {selectedCompetitor.location || t.locationNotFound}
                 </span>
                 <span>
                   <Mail size={17} />
-                  {selectedCompetitor.email || 'Email not found'}
+                  {selectedCompetitor.email || t.emailNotFound}
                 </span>
                 <span>
                   <Phone size={17} />
-                  {selectedCompetitor.phone || 'Phone not found'}
+                  {selectedCompetitor.phone || t.phoneNotFound}
                 </span>
                 <span>
                   <ExternalLink size={17} />
@@ -1958,7 +2232,7 @@ function App() {
                       {selectedCompetitor.website_url}
                     </a>
                   ) : (
-                    'Website not found'
+                    t.websiteNotFound
                   )}
                 </span>
               </div>
@@ -1970,11 +2244,11 @@ function App() {
       {selectedArticle ? (
         <div className="auth-backdrop" role="presentation">
           <section className="article-modal" role="dialog" aria-modal="true" aria-labelledby="article-title">
-            <button className="auth-close" type="button" aria-label="Close saved article" onClick={() => setSelectedArticle(null)}>
+            <button className="auth-close" type="button" aria-label={t.savedPost} onClick={() => setSelectedArticle(null)}>
               <X size={19} />
             </button>
-            <p className="auth-kicker">Saved post</p>
-            <h2 id="article-title">{selectedArticle.payload?.title || 'Untitled post'}</h2>
+            <p className="auth-kicker">{t.savedPost}</p>
+            <h2 id="article-title">{selectedArticle.payload?.title || t.untitledPost}</h2>
             <p>{selectedArticle.payload?.excerpt}</p>
             <pre>{selectedArticle.payload?.postText}</pre>
           </section>
@@ -1984,7 +2258,7 @@ function App() {
       {showCompetitorMiniProgress ? (
         <div className="floating-progress" role="status" aria-live="polite">
           <div className="floating-progress-copy">
-            <span>{competitorJob.label}</span>
+            <span>{t.competitorRunning}</span>
             <strong>{competitorJob.progress}%</strong>
           </div>
           <div className="feature-progress-track">
@@ -1992,7 +2266,7 @@ function App() {
           </div>
           <button
             type="button"
-            aria-label="Close progress popup"
+            aria-label={t.closeProgress}
             onClick={() => setHiddenJobPopups((current) => ({ ...current, competitor_search: true }))}
           >
             <X size={16} />
@@ -2003,7 +2277,7 @@ function App() {
       {showSeoMiniProgress ? (
         <div className="floating-progress" role="status" aria-live="polite">
           <div className="floating-progress-copy">
-            <span>{seoJob.label}</span>
+            <span>{t.seoRunning}</span>
             <strong>{seoJob.progress}%</strong>
           </div>
           <div className="feature-progress-track">
@@ -2011,7 +2285,7 @@ function App() {
           </div>
           <button
             type="button"
-            aria-label="Close SEO progress popup"
+            aria-label={t.closeSeoProgress}
             onClick={() => setHiddenJobPopups((current) => ({ ...current, seo_analysis: true }))}
           >
             <X size={16} />
@@ -2022,7 +2296,7 @@ function App() {
       {showBlogMiniProgress ? (
         <div className="floating-progress" role="status" aria-live="polite">
           <div className="floating-progress-copy">
-            <span>{blogJob.label}</span>
+            <span>{t.blogRunning}</span>
             <strong>{blogJob.progress}%</strong>
           </div>
           <div className="feature-progress-track">
@@ -2030,7 +2304,7 @@ function App() {
           </div>
           <button
             type="button"
-            aria-label="Close blog writer progress popup"
+            aria-label={t.closeBlogProgress}
             onClick={() => setHiddenJobPopups((current) => ({ ...current, blog_writer: true }))}
           >
             <X size={16} />
@@ -2041,7 +2315,7 @@ function App() {
       {showLayoutMiniProgress ? (
         <div className="floating-progress" role="status" aria-live="polite">
           <div className="floating-progress-copy">
-            <span>{layoutJob.label}</span>
+            <span>{t.layoutRunning}</span>
             <strong>{layoutJob.progress}%</strong>
           </div>
           <div className="feature-progress-track">
@@ -2049,7 +2323,7 @@ function App() {
           </div>
           <button
             type="button"
-            aria-label="Close layout audit progress popup"
+            aria-label={t.closeLayoutProgress}
             onClick={() => setHiddenJobPopups((current) => ({ ...current, layout_audit: true }))}
           >
             <X size={16} />
@@ -2060,7 +2334,7 @@ function App() {
   )
 }
 
-function AuthModal({ mode, onClose, onModeChange }) {
+function AuthModal({ mode, onClose, onModeChange, t }) {
   const googleButtonRef = useRef(null)
   const [form, setForm] = useState({ name: '', email: '', password: '' })
   const [status, setStatus] = useState('idle')
@@ -2078,7 +2352,7 @@ function AuthModal({ mode, onClose, onModeChange }) {
 
     async function handleCredentialResponse(response) {
       if (!response.credential) {
-        setError('Google did not return an identity token.')
+            setError('Google did not return an identity token.')
         return
       }
 
@@ -2169,43 +2443,40 @@ function AuthModal({ mode, onClose, onModeChange }) {
   return (
     <div className="auth-backdrop" role="presentation">
       <section className="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-        <button className="auth-close" type="button" aria-label="Close auth panel" onClick={onClose}>
+        <button className="auth-close" type="button" aria-label={isRegister ? t.registerTitle : t.loginTitle} onClick={onClose}>
           <X size={19} />
         </button>
         <div className="auth-media" aria-hidden="true">
           <img src={visualDataUri('Secure account access', 2)} alt="" />
         </div>
         <div className="auth-panel">
-          <p className="auth-kicker">{isRegister ? 'Create workspace access' : 'Welcome back'}</p>
-          <h2 id="auth-title">{isRegister ? 'Register for RankSprint.' : 'Log in to RankSprint.'}</h2>
-          <p className="auth-copy">
-            Use email and password, or continue with Google once Firebase Authentication is configured.
-          </p>
+          <p className="auth-kicker">{isRegister ? t.createWorkspaceAccess : t.welcomeBack}</p>
+          <h2 id="auth-title">{isRegister ? t.registerTitle : t.loginTitle}</h2>
+          <p className="auth-copy">{t.authCopy}</p>
 
           {!isFirebaseConfigured ? (
             <div className="setup-note">
-              Firebase env values missing. Copy <code>.env.example</code> to <code>.env.local</code>,
-              add your web app config, then enable Google in Firebase Authentication.
+              {t.firebaseMissing}
             </div>
           ) : null}
 
           <div className="google-identity-shell">
             <div ref={googleButtonRef} className="google-identity-button" />
             {!import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
-              <p className="auth-error">Google client ID missing from .env.local.</p>
+              <p className="auth-error">{t.googleClientMissing}</p>
             ) : null}
           </div>
 
           <div className="auth-divider">
             <span />
-            Email access
+            {t.emailAccess}
             <span />
           </div>
 
           <form className="auth-form" onSubmit={handleSubmit}>
             {isRegister ? (
               <label>
-                <span>Name</span>
+                <span>{t.name}</span>
                 <input
                   name="name"
                   value={form.name}
@@ -2216,7 +2487,7 @@ function AuthModal({ mode, onClose, onModeChange }) {
               </label>
             ) : null}
             <label>
-              <span>Email</span>
+              <span>{t.email}</span>
               <div className="field-shell">
                 <Mail size={17} />
                 <input
@@ -2231,7 +2502,7 @@ function AuthModal({ mode, onClose, onModeChange }) {
               </div>
             </label>
             <label>
-              <span>Password</span>
+              <span>{t.password}</span>
               <input
                 name="password"
                 type="password"
@@ -2239,13 +2510,13 @@ function AuthModal({ mode, onClose, onModeChange }) {
                 autoComplete={isRegister ? 'new-password' : 'current-password'}
                 minLength={6}
                 onChange={updateField}
-                placeholder="At least 6 characters"
+                placeholder={t.passwordPlaceholder}
                 required
               />
             </label>
             {error ? <p className="auth-error">{error}</p> : null}
             <button className="button light auth-submit" type="submit" disabled={status === 'loading'}>
-              {status === 'loading' ? 'Working...' : isRegister ? 'Create account' : 'Log in'}
+              {status === 'loading' ? t.working : isRegister ? t.createAccount : t.login}
             </button>
           </form>
 
@@ -2254,7 +2525,7 @@ function AuthModal({ mode, onClose, onModeChange }) {
             type="button"
             onClick={() => onModeChange(isRegister ? 'login' : 'register')}
           >
-            {isRegister ? 'Already have an account? Log in' : 'Need an account? Register'}
+            {isRegister ? t.alreadyHaveAccount : t.needAccount}
           </button>
         </div>
       </section>
