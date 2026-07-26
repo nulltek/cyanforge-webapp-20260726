@@ -96,3 +96,14 @@ export async function loginWithGoogleCredential(idToken) {
 export async function logout() {
   await signOut(requireAuth())
 }
+
+export async function updateUserProfile(profile) {
+  const currentUser = requireAuth().currentUser
+
+  if (!currentUser) {
+    throw new Error('Login is required to update profile.')
+  }
+
+  await updateProfile(currentUser, profile)
+  return currentUser
+}

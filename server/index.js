@@ -93,6 +93,8 @@ async function migrate() {
       display_name text,
       photo_url text,
       provider text,
+      username_change_month text,
+      username_change_count integer not null default 0,
       created_at timestamptz not null default now(),
       updated_at timestamptz not null default now()
     );
@@ -180,6 +182,10 @@ async function migrate() {
       add column if not exists email text,
       add column if not exists phone text,
       add column if not exists website_url text;
+
+    alter table app_users
+      add column if not exists username_change_month text,
+      add column if not exists username_change_count integer not null default 0;
   `)
 }
 
@@ -540,13 +546,13 @@ async function findCompetitorsWithOpenAI(project) {
   }
 
   const prompt = `
-Find direct business competitors for this project.
+Find direct business competitors for the business represented by this website URL.
 
-Project name: ${project.name}
-Project description: ${project.description || 'Not provided'}
 Website URL: ${project.website_url}
 
-Use current public web information. Return only valid JSON in this shape:
+Only use the submitted website URL as the target business input. You may inspect that URL, public pages under that same domain, and public search results needed to identify competitors. Do not use project name, project description, saved competitor rows, or saved reports as source input.
+
+Return only valid JSON in this shape:
 {
   "competitors": [
     {
@@ -585,28 +591,21 @@ Return 5 to 10 competitors. Do not include the submitted business itself.
   return { competitors: parseCompetitorPayload(getOutputText(data)), source: 'openai' }
 }
 
-async function analyzeSeoWithOpenAI(project, competitors) {
+async function analyzeSeoWithOpenAI(project) {
   const apiKey = await readOpenAiKey('seo_analysis')
 
   if (!apiKey) {
-    return { analysis: fallbackSeoAnalysis(project, competitors), source: 'fallback' }
+    return { analysis: fallbackSeoAnalysis(project, []), source: 'fallback' }
   }
 
-  const competitorContext = competitors.length
-    ? competitors.map((competitor) => `- ${competitor.business_name}: ${competitor.website_url || 'No website found'}`).join('\n')
-    : 'No competitors saved yet. Identify broad comparison points from public search context.'
-
   const prompt = `
-Analyze SEO for this project and compare it against basic SEO rules plus saved competitors.
+Analyze SEO for the business represented by this website URL and compare it with competitors discovered from public web context.
 
-Project name: ${project.name}
-Project description: ${project.description || 'Not provided'}
 Website URL: ${project.website_url}
 
-Saved competitors:
-${competitorContext}
+Only use the submitted website URL as the target business input. You may inspect that URL, public pages under that same domain, and public search results needed for competitor comparison. Do not use project name, project description, saved competitor rows, saved reports, or prior analyses as source input.
 
-Use current public web information. Return only valid JSON in this shape:
+Return only valid JSON in this shape:
 {
   "score": 0,
   "summary": "Short executive SEO summary",
@@ -646,34 +645,21 @@ Score must be from 0 to 10, where 10 is excellent SEO. Rules to cover: title tag
   return { analysis: parseSeoPayload(getOutputText(data)), source: 'openai' }
 }
 
-async function writeArticleWithOpenAI(project, competitors, seoAnalysis) {
+async function writeArticleWithOpenAI(project) {
   const apiKey = await readOpenAiKey('blog_writer')
 
   if (!apiKey) {
-    return { article: fallbackArticle(project, competitors), source: 'fallback' }
+    return { article: fallbackArticle(project, []), source: 'fallback' }
   }
 
-  const competitorContext = competitors.length
-    ? competitors.map((competitor) => `- ${competitor.business_name}: ${competitor.website_url || 'No website found'}; ${competitor.description || 'No description'}`).join('\n')
-    : 'No saved competitors yet. Use current web trend research for likely market peers.'
-  const seoContext = seoAnalysis?.payload
-    ? `SEO score: ${seoAnalysis.payload.score}/10. Recommendations: ${(seoAnalysis.payload.recommendations || []).join('; ')}`
-    : 'No SEO analysis saved yet.'
-
   const prompt = `
-Write a blog/news article draft for this business.
+Write a blog/news article draft for the business represented by this website URL.
 
-Project name: ${project.name}
-Project description: ${project.description || 'Not provided'}
 Website URL: ${project.website_url}
 
-Saved competitors:
-${competitorContext}
+Only use the submitted website URL as the target business input. You may inspect that URL, public pages under that same domain, current internet trends, search demand, and public competitor activity discovered from web search. Do not use project name, project description, saved competitor rows, saved reports, or prior analyses as source input.
 
-SEO context:
-${seoContext}
-
-Analyze current internet trends, current news hooks, search demand, and what competitors appear to be discussing or promoting. Then write one useful post draft for the business.
+Analyze current internet trends, current news hooks, search demand, and what competitors discovered from the URL's market appear to be discussing or promoting. Then write one useful post draft for the business.
 
 Return only valid JSON in this shape:
 {
@@ -713,32 +699,26 @@ Return only valid JSON in this shape:
   return { article: parseArticlePayload(getOutputText(data)), source: 'openai' }
 }
 
-async function analyzeLayoutWithOpenAI(project, competitors) {
+async function analyzeLayoutWithOpenAI(project) {
   const apiKey = await readOpenAiKey('layout_audit')
 
   if (!apiKey) {
     return { audit: fallbackLayoutAudit(project), source: 'fallback' }
   }
 
-  const competitorContext = competitors.length
-    ? competitors.map((competitor) => `- ${competitor.business_name}: ${competitor.website_url || 'No website found'}`).join('\n')
-    : 'No saved competitors yet. Use current public web context for category norms.'
   const websiteSnapshot = await fetchWebsiteSnapshot(project.website_url)
 
   const prompt = `
 Analyze this website's mobile and laptop layout quality.
 
-Project name: ${project.name}
-Project description: ${project.description || 'Not provided'}
 Website URL: ${project.website_url}
-
-Saved competitors:
-${competitorContext}
 
 Fetched page snapshot:
 ${websiteSnapshot || 'Fetch unavailable. Use public web search context and visible search snippets.'}
 
-Use current public web information where useful. Judge common mobile widths around 360-430px and laptop widths around 1366-1440px. Look for responsiveness, layout issues, branding consistency, visual hierarchy, navigation, CTA clarity, imagery quality, spacing, overflow risk, accessibility, and competitor/category expectations.
+Only use the submitted website URL as the target business input. You may inspect that URL, public pages under that same domain, current public web information for category norms, and public competitor examples discovered from the URL's market. Do not use project name, project description, saved competitor rows, saved reports, or prior analyses as source input.
+
+Judge common mobile widths around 360-430px and laptop widths around 1366-1440px. Look for responsiveness, layout issues, branding consistency, visual hierarchy, navigation, CTA clarity, imagery quality, spacing, overflow risk, accessibility, and competitor/category expectations.
 
 Return only valid JSON in this shape:
 {
@@ -894,6 +874,79 @@ app.post('/api/users', async (request, response) => {
     response.json({ user: result.rows[0] })
   } catch (error) {
     response.status(500).json({ error: error.message })
+  }
+})
+
+app.get('/api/users/:userId/profile', async (request, response) => {
+  try {
+    const result = await query('select * from app_users where id = $1', [request.params.userId])
+    response.json({ profile: result.rows[0] || null })
+  } catch (error) {
+    response.status(500).json({ error: error.message })
+  }
+})
+
+app.patch('/api/users/:userId/profile', async (request, response) => {
+  try {
+    const payload = await verifyFirebaseUser(request)
+    const userId = request.params.userId
+
+    if (payload.user_id !== userId && payload.sub !== userId) {
+      response.status(403).json({ error: 'You can only update your own profile.' })
+      return
+    }
+
+    const requestedName = String(request.body?.displayName || '').trim()
+    const requestedPhoto = String(request.body?.photoURL || '').trim()
+
+    if (!requestedName) {
+      response.status(400).json({ error: 'Username is required.' })
+      return
+    }
+
+    const currentResult = await query('select * from app_users where id = $1', [userId])
+    const currentProfile = currentResult.rows[0]
+    if (!currentProfile) {
+      await query(
+        `
+          insert into app_users (id, email, display_name, photo_url, provider)
+          values ($1, $2, $3, $4, $5)
+          on conflict (id) do nothing
+        `,
+        [userId, payload.email || null, payload.name || null, payload.picture || null, 'firebase'],
+      )
+    }
+    const monthKey = new Date().toISOString().slice(0, 7)
+    const currentMonth = currentProfile?.username_change_month === monthKey
+    const currentCount = currentMonth ? Number(currentProfile?.username_change_count || 0) : 0
+    const nameChanged = requestedName !== String(currentProfile?.display_name || '').trim()
+
+    if (nameChanged && currentCount >= 2) {
+      response.status(429).json({ error: 'Username can only be changed 2 times per month.' })
+      return
+    }
+
+    const nextCount = nameChanged ? currentCount + 1 : currentCount
+    const result = await query(
+      `
+        update app_users
+        set display_name = $2,
+            photo_url = $3,
+            username_change_month = $4,
+            username_change_count = $5,
+            updated_at = now()
+        where id = $1
+        returning *
+      `,
+      [userId, requestedName, requestedPhoto || null, monthKey, nextCount],
+    )
+
+    response.json({
+      profile: result.rows[0],
+      usernameChangesRemaining: Math.max(0, 2 - nextCount),
+    })
+  } catch (error) {
+    response.status(error.statusCode || 500).json({ error: error.message })
   }
 })
 
@@ -1073,17 +1126,7 @@ app.post('/api/projects/:projectId/seo/analyze', async (request, response) => {
       return
     }
 
-    const competitorsResult = await query(
-      `
-        select *
-        from competitors
-        where project_id = $1
-        order by id asc
-      `,
-      [project.id],
-    )
-
-    const { analysis, source } = await analyzeSeoWithOpenAI(project, competitorsResult.rows)
+    const { analysis, source } = await analyzeSeoWithOpenAI(project)
     const result = await query(
       `
         insert into seo_analyses (project_id, payload, source)
@@ -1118,6 +1161,25 @@ app.get('/api/projects/:projectId/articles/latest', async (request, response) =>
   }
 })
 
+app.get('/api/projects/:projectId/articles', async (request, response) => {
+  try {
+    const result = await query(
+      `
+        select *
+        from articles
+        where project_id = $1
+        order by created_at desc
+        limit 50
+      `,
+      [request.params.projectId],
+    )
+
+    response.json({ articles: result.rows })
+  } catch (error) {
+    response.status(500).json({ error: error.message })
+  }
+})
+
 app.post('/api/projects/:projectId/articles/write', async (request, response) => {
   try {
     const projectResult = await query('select * from projects where id = $1', [request.params.projectId])
@@ -1128,27 +1190,7 @@ app.post('/api/projects/:projectId/articles/write', async (request, response) =>
       return
     }
 
-    const competitorsResult = await query(
-      `
-        select *
-        from competitors
-        where project_id = $1
-        order by id asc
-      `,
-      [project.id],
-    )
-    const seoResult = await query(
-      `
-        select *
-        from seo_analyses
-        where project_id = $1
-        order by created_at desc
-        limit 1
-      `,
-      [project.id],
-    )
-
-    const { article, source } = await writeArticleWithOpenAI(project, competitorsResult.rows, seoResult.rows[0])
+    const { article, source } = await writeArticleWithOpenAI(project)
     const result = await query(
       `
         insert into articles (project_id, payload, source)
@@ -1193,17 +1235,7 @@ app.post('/api/projects/:projectId/layout/analyze', async (request, response) =>
       return
     }
 
-    const competitorsResult = await query(
-      `
-        select *
-        from competitors
-        where project_id = $1
-        order by id asc
-      `,
-      [project.id],
-    )
-
-    const { audit, source } = await analyzeLayoutWithOpenAI(project, competitorsResult.rows)
+    const { audit, source } = await analyzeLayoutWithOpenAI(project)
     const result = await query(
       `
         insert into layout_audits (project_id, payload, source)

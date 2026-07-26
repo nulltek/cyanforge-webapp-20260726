@@ -6,6 +6,7 @@ import {
   BarChart3,
   Bell,
   Building2,
+  Camera,
   Check,
   ChevronRight,
   CircleDollarSign,
@@ -22,11 +23,14 @@ import {
   Mail,
   MapPin,
   MonitorSmartphone,
+  Moon,
   Newspaper,
   Phone,
   Plus,
   Search,
+  Settings,
   ShieldCheck,
+  Sun,
   UserPlus,
   X,
 } from 'lucide-react'
@@ -37,8 +41,56 @@ import {
   loginWithGoogleCredential,
   logout,
   registerWithEmail,
+  updateUserProfile,
 } from './firebaseAuth'
 import './App.css'
+
+const copy = {
+  en: {
+    home: 'Home',
+    projects: 'Projects',
+    pricing: 'Pricing',
+    settings: 'Settings',
+    login: 'Login',
+    register: 'Register',
+    logout: 'Log out',
+    latestPost: 'Latest post',
+    savedPosts: 'Saved posts',
+    noPosts: 'No article written yet.',
+    settingsTitle: 'Settings',
+    settingsIntro: 'Choose theme, language, username, and profile image.',
+    theme: 'Theme',
+    lightMode: 'Light mode',
+    darkMode: 'Dark mode',
+    language: 'Language',
+    username: 'Username',
+    profilePicture: 'Profile picture',
+    saveProfile: 'Save profile',
+    usernameLimit: 'Username can be changed 2 times per month.',
+  },
+  hu: {
+    home: 'Kezdolap',
+    projects: 'Projektek',
+    pricing: 'Arak',
+    settings: 'Beallitasok',
+    login: 'Bejelentkezes',
+    register: 'Regisztracio',
+    logout: 'Kijelentkezes',
+    latestPost: 'Legujabb poszt',
+    savedPosts: 'Mentett posztok',
+    noPosts: 'Meg nincs cikk.',
+    settingsTitle: 'Beallitasok',
+    settingsIntro: 'Valassz temat, nyelvet, felhasznalonevet es profilkepet.',
+    theme: 'Tema',
+    lightMode: 'Vilagos mod',
+    darkMode: 'Sotet mod',
+    language: 'Nyelv',
+    username: 'Felhasznalonev',
+    profilePicture: 'Profilkep',
+    saveProfile: 'Profil mentese',
+    usernameLimit: 'A felhasznalonev havonta 2 alkalommal modosithato.',
+  },
+}
 
 function visualDataUri(title, variant = 0) {
   const palettes = [
@@ -507,6 +559,8 @@ function App() {
   const [user, setUser] = useState(null)
   const [screen, setScreen] = useState('home')
   const [dashboardTab, setDashboardTab] = useState('details')
+  const [themeMode, setThemeMode] = useState(() => window.localStorage.getItem('cyanforge_theme') || 'light')
+  const [language, setLanguage] = useState(() => window.localStorage.getItem('cyanforge_language') || 'en')
   const [actionStatus, setActionStatus] = useState('Ready to save scans and reports')
   const [savedReports, setSavedReports] = useState([])
   const [openAiStatus, setOpenAiStatus] = useState({ configured: false, features: [] })
@@ -523,7 +577,11 @@ function App() {
   const [competitors, setCompetitors] = useState([])
   const [seoAnalysis, setSeoAnalysis] = useState(null)
   const [articleDraft, setArticleDraft] = useState(null)
+  const [articleHistory, setArticleHistory] = useState([])
+  const [selectedArticle, setSelectedArticle] = useState(null)
   const [layoutAudit, setLayoutAudit] = useState(null)
+  const [profileForm, setProfileForm] = useState({ displayName: '', photoURL: '' })
+  const [usernameChangesRemaining, setUsernameChangesRemaining] = useState(null)
   const [selectedCompetitor, setSelectedCompetitor] = useState(null)
   const [projectBusy, setProjectBusy] = useState(false)
   const [competitorSource, setCompetitorSource] = useState('')
@@ -535,6 +593,7 @@ function App() {
       && `${user.displayName || ''} ${user.email || ''}`.toLowerCase().includes('nulltek'),
   )
   const activeProject = projects.find((project) => project.id === activeProjectId) || projects[0] || null
+  const t = copy[language] || copy.en
   const competitorSearchKey = openAiStatus.features.find((feature) => feature.id === 'competitor_search')
   const competitorJob = featureJobs.competitor_search
   const seoAnalysisKey = openAiStatus.features.find((feature) => feature.id === 'seo_analysis')
@@ -569,6 +628,14 @@ function App() {
   )
 
   useEffect(() => listenToAuthState(setUser), [])
+
+  useEffect(() => {
+    window.localStorage.setItem('cyanforge_theme', themeMode)
+  }, [themeMode])
+
+  useEffect(() => {
+    window.localStorage.setItem('cyanforge_language', language)
+  }, [language])
 
   useEffect(() => {
     apiRequest('/api/health')
@@ -606,6 +673,18 @@ function App() {
       .then((data) => setSavedReports(data.reports || []))
       .catch((error) => setActionStatus(error.message))
 
+    apiRequest(`/api/users/${encodeURIComponent(user.uid)}/profile`)
+      .then((data) => {
+        const profile = data.profile
+        setProfileForm({
+          displayName: profile?.display_name || user.displayName || '',
+          photoURL: profile?.photo_url || user.photoURL || '',
+        })
+        const currentMonth = profile?.username_change_month === new Date().toISOString().slice(0, 7)
+        setUsernameChangesRemaining(Math.max(0, 2 - (currentMonth ? Number(profile?.username_change_count || 0) : 0)))
+      })
+      .catch((error) => setActionStatus(error.message))
+
     loadProjects(user.uid)
   }, [user])
 
@@ -625,6 +704,10 @@ function App() {
 
     apiRequest(`/api/projects/${activeProjectId}/articles/latest`)
       .then((data) => setArticleDraft(data.article))
+      .catch((error) => setActionStatus(error.message))
+
+    apiRequest(`/api/projects/${activeProjectId}/articles`)
+      .then((data) => setArticleHistory(data.articles || []))
       .catch((error) => setActionStatus(error.message))
 
     apiRequest(`/api/projects/${activeProjectId}/layout/latest`)
@@ -683,6 +766,43 @@ function App() {
 
   function updateFeatureKey(featureId, value) {
     setOpenAiKeys((current) => ({ ...current, [featureId]: value }))
+  }
+
+  function updateProfileField(event) {
+    setProfileForm((current) => ({ ...current, [event.target.name]: event.target.value }))
+  }
+
+  async function saveProfileSettings(event) {
+    event.preventDefault()
+
+    if (!user) {
+      setActionStatus('Login is required to save profile.')
+      return
+    }
+
+    setActionStatus('Saving profile...')
+
+    try {
+      const token = await user.getIdToken()
+      const data = await apiRequest(`/api/users/${encodeURIComponent(user.uid)}/profile`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          displayName: profileForm.displayName,
+          photoURL: profileForm.photoURL,
+        }),
+      })
+
+      await updateUserProfile({
+        displayName: data.profile?.display_name || profileForm.displayName,
+        photoURL: data.profile?.photo_url || profileForm.photoURL,
+      })
+      setUsernameChangesRemaining(data.usernameChangesRemaining)
+      setUser({ ...user, displayName: data.profile?.display_name || profileForm.displayName, photoURL: data.profile?.photo_url || profileForm.photoURL })
+      setActionStatus('Profile saved.')
+    } catch (error) {
+      setActionStatus(error.message)
+    }
   }
 
   async function saveOpenAiKey(event, featureId) {
@@ -905,6 +1025,7 @@ function App() {
       })
 
       setArticleDraft(data.article)
+      setArticleHistory((current) => [data.article, ...current.filter((item) => item.id !== data.article.id)])
       setFeatureJobs((current) => ({
         ...current,
         blog_writer: {
@@ -1028,7 +1149,7 @@ function App() {
   )
 
   return (
-    <main ref={rootRef} className="app-shell overflow-guard">
+    <main ref={rootRef} className={`app-shell overflow-guard theme-${themeMode}`}>
       <nav className="nav-shell">
         <button className="brand brand-button" type="button" aria-label="CyanForge home" onClick={() => setScreen('home')}>
           <span className="brand-mark">
@@ -1037,9 +1158,10 @@ function App() {
           CyanForge
         </button>
         <div className="nav-links" aria-label="Main navigation">
-          <button type="button" onClick={() => setScreen('home')}>Home</button>
-          <button type="button" onClick={() => setScreen('projects')}>Projects</button>
-          <a href="#pricing" onClick={() => setScreen('home')}>Pricing</a>
+          <button type="button" onClick={() => setScreen('home')}>{t.home}</button>
+          <button type="button" onClick={() => setScreen('projects')}>{t.projects}</button>
+          <button type="button" onClick={() => setScreen('settings')}>{t.settings}</button>
+          <a href="#pricing" onClick={() => setScreen('home')}>{t.pricing}</a>
         </div>
         <div className="nav-actions">
           <button className="icon-button" type="button" aria-label="Open alerts">
@@ -1057,11 +1179,11 @@ function App() {
             <>
               <button className="button ghost" type="button" onClick={() => setAuthMode('login')}>
                 <LogIn size={17} />
-                Login
+                {t.login}
               </button>
               <button className="button light" type="button" onClick={() => setAuthMode('register')}>
                 <UserPlus size={17} />
-                Register
+                {t.register}
               </button>
             </>
           )}
@@ -1286,6 +1408,103 @@ function App() {
         </section>
       ) : null}
 
+      {screen === 'settings' ? (
+        <section className="settings-page">
+          <div className="page-heading">
+            <p className="eyebrow">{t.settings}</p>
+            <h1>{t.settingsTitle}</h1>
+            <p>{t.settingsIntro}</p>
+          </div>
+
+          <div className="settings-grid">
+            <article className="settings-card">
+              <div className="settings-heading">
+                <span className="card-icon">
+                  {themeMode === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
+                </span>
+                <div>
+                  <h3>{t.theme}</h3>
+                  <p>{themeMode === 'dark' ? t.darkMode : t.lightMode}</p>
+                </div>
+              </div>
+              <div className="segmented-control">
+                <button className={themeMode === 'light' ? 'active' : ''} type="button" onClick={() => setThemeMode('light')}>
+                  <Sun size={16} />
+                  {t.lightMode}
+                </button>
+                <button className={themeMode === 'dark' ? 'active' : ''} type="button" onClick={() => setThemeMode('dark')}>
+                  <Moon size={16} />
+                  {t.darkMode}
+                </button>
+              </div>
+            </article>
+
+            <article className="settings-card">
+              <div className="settings-heading">
+                <span className="card-icon">
+                  <Settings size={20} />
+                </span>
+                <div>
+                  <h3>{t.language}</h3>
+                  <p>English / Magyar</p>
+                </div>
+              </div>
+              <label className="settings-field">
+                <span>{t.language}</span>
+                <select value={language} onChange={(event) => setLanguage(event.target.value)}>
+                  <option value="en">English</option>
+                  <option value="hu">Magyar</option>
+                </select>
+              </label>
+            </article>
+
+            <form className="settings-card profile-card" onSubmit={saveProfileSettings}>
+              <div className="settings-heading">
+                <span className="card-icon">
+                  <Camera size={20} />
+                </span>
+                <div>
+                  <h3>{t.username}</h3>
+                  <p>
+                    {t.usernameLimit}
+                    {usernameChangesRemaining != null ? ` ${usernameChangesRemaining} left this month.` : ''}
+                  </p>
+                </div>
+              </div>
+              <div className="profile-editor">
+                <img src={profileForm.photoURL || visualDataUri(profileForm.displayName || 'Profile', 2)} alt="" />
+                <div className="profile-fields">
+                  <label className="settings-field">
+                    <span>{t.username}</span>
+                    <input name="displayName" value={profileForm.displayName} onChange={updateProfileField} placeholder="NullTek" required />
+                  </label>
+                  <label className="settings-field">
+                    <span>{t.profilePicture}</span>
+                    <input name="photoURL" value={profileForm.photoURL} onChange={updateProfileField} placeholder="https://..." />
+                  </label>
+                  <div className="avatar-picker">
+                    {['cyan-profile', 'blue-grid', 'clean-wave', 'audit-map'].map((seed, index) => (
+                      <button
+                        type="button"
+                        key={seed}
+                        aria-label={`Pick profile image ${index + 1}`}
+                        onClick={() => setProfileForm((current) => ({ ...current, photoURL: visualDataUri(seed, index) }))}
+                      >
+                        <img src={visualDataUri(seed, index)} alt="" />
+                      </button>
+                    ))}
+                  </div>
+                  <button className="button light" type="submit" disabled={!user}>
+                    <Check size={17} />
+                    {t.saveProfile}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </section>
+      ) : null}
+
       {screen === 'dashboard' && activeProject ? (
         <section className="dashboard-shell">
           <aside className="dashboard-sidebar">
@@ -1344,7 +1563,7 @@ function App() {
                 <h1>{activeProject.name}</h1>
                 <p>{activeProject.description || 'No project description added yet.'}</p>
                 <div className="analytics-grid">
-                  <article className="analytics-card">
+                  <article className="analytics-card full-row-card">
                     <span>Website</span>
                     <strong>{activeProject.website_url}</strong>
                   </article>
@@ -1503,39 +1722,52 @@ function App() {
                   Write article
                 </button>
 
-                {articleDraft ? (
-                  <div className="article-report">
-                    <article className="article-summary-card">
-                      <span>{articleDraft.source === 'openai' ? 'Live trend draft' : 'Placeholder draft'}</span>
-                      <h2>{articleDraft.payload?.title}</h2>
-                      <p>{articleDraft.payload?.excerpt}</p>
-                      <small>{articleDraft.payload?.slug}</small>
-                    </article>
-                    <article className="article-trends-card">
-                      <h3>Trend angle</h3>
-                      <p>{articleDraft.payload?.trendSummary}</p>
-                    </article>
-                    <article className="article-trends-card">
-                      <h3>Competitor angles</h3>
-                      {(articleDraft.payload?.competitorAngles || []).map((item) => (
-                        <p key={`${item.businessName}-${item.angle}`}>
-                          <strong>{item.businessName}</strong>
-                          {item.angle}
-                        </p>
-                      ))}
-                    </article>
-                    <article className="article-body-card">
-                      <h3>Post text</h3>
-                      <pre>{articleDraft.payload?.postText}</pre>
-                      <p className="article-cta">{articleDraft.payload?.callToAction}</p>
-                    </article>
-                  </div>
-                ) : (
-                  <div className="empty-competitors">
-                    <Newspaper size={22} />
-                    <p>No article written yet.</p>
-                  </div>
-                )}
+                <div className="article-workspace">
+                  <aside className="article-history-menu">
+                    <h3>{t.savedPosts}</h3>
+                    {articleHistory.map((article) => (
+                      <button type="button" key={article.id} onClick={() => setSelectedArticle(article)}>
+                        <span>{article.payload?.title || 'Untitled post'}</span>
+                        <small>{new Date(article.created_at).toLocaleDateString()}</small>
+                      </button>
+                    ))}
+                    {!articleHistory.length ? <p>{t.noPosts}</p> : null}
+                  </aside>
+
+                  {articleDraft ? (
+                    <div className="article-report">
+                      <article className="article-summary-card">
+                        <span>{t.latestPost} · {articleDraft.source === 'openai' ? 'Live trend draft' : 'Placeholder draft'}</span>
+                        <h2>{articleDraft.payload?.title}</h2>
+                        <p>{articleDraft.payload?.excerpt}</p>
+                        <small>{articleDraft.payload?.slug}</small>
+                      </article>
+                      <article className="article-trends-card">
+                        <h3>Trend angle</h3>
+                        <p>{articleDraft.payload?.trendSummary}</p>
+                      </article>
+                      <article className="article-trends-card">
+                        <h3>Competitor angles</h3>
+                        {(articleDraft.payload?.competitorAngles || []).map((item) => (
+                          <p key={`${item.businessName}-${item.angle}`}>
+                            <strong>{item.businessName}</strong>
+                            {item.angle}
+                          </p>
+                        ))}
+                      </article>
+                      <article className="article-body-card">
+                        <h3>Post text</h3>
+                        <pre>{articleDraft.payload?.postText}</pre>
+                        <p className="article-cta">{articleDraft.payload?.callToAction}</p>
+                      </article>
+                    </div>
+                  ) : (
+                    <div className="empty-competitors">
+                      <Newspaper size={22} />
+                      <p>{t.noPosts}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : null}
 
@@ -1734,6 +1966,20 @@ function App() {
                 </span>
               </div>
             </div>
+          </section>
+        </div>
+      ) : null}
+
+      {selectedArticle ? (
+        <div className="auth-backdrop" role="presentation">
+          <section className="article-modal" role="dialog" aria-modal="true" aria-labelledby="article-title">
+            <button className="auth-close" type="button" aria-label="Close saved article" onClick={() => setSelectedArticle(null)}>
+              <X size={19} />
+            </button>
+            <p className="auth-kicker">Saved post</p>
+            <h2 id="article-title">{selectedArticle.payload?.title || 'Untitled post'}</h2>
+            <p>{selectedArticle.payload?.excerpt}</p>
+            <pre>{selectedArticle.payload?.postText}</pre>
           </section>
         </div>
       ) : null}
