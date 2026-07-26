@@ -210,6 +210,119 @@ async function downloadSeoPdf(project, analysis) {
   doc.save(`${fileBase}-seo-improvements.pdf`)
 }
 
+async function downloadAnalyticsPdf(project, competitors, seoAnalysis, reports, competitorSource) {
+  if (!project) {
+    return
+  }
+
+  const { jsPDF } = await import('jspdf')
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+  const fileBase = project.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'analytics-report'
+  const seoPayload = seoAnalysis?.payload || {}
+
+  doc.setProperties({
+    title: `${project.name} analytics report`,
+    subject: 'CyanForge analytics export',
+    creator: 'CyanForge',
+  })
+
+  doc.setFillColor(0, 142, 196)
+  doc.rect(0, 0, 210, 28, 'F')
+  doc.setTextColor(255, 255, 255)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(18)
+  doc.text('CyanForge Analytics Report', 14, 18)
+
+  doc.setTextColor(6, 45, 66)
+  doc.setFontSize(22)
+  doc.text(project.name, 14, 44)
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(10)
+  doc.text(project.website_url, 14, 52)
+
+  const scoreText = seoPayload.score != null ? `${Number(seoPayload.score).toFixed(1)}/10` : 'None'
+  const metricCards = [
+    ['Competitors found', String(competitors.length)],
+    ['Competitor source', competitorSource || 'None'],
+    ['SEO score', scoreText],
+    ['Reports saved', String(reports.length)],
+  ]
+
+  let x = 14
+  metricCards.forEach(([label, value]) => {
+    doc.setDrawColor(53, 212, 255)
+    doc.roundedRect(x, 70, 42, 26, 3, 3)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(8)
+    doc.text(label, x + 4, 79)
+    doc.setFontSize(13)
+    doc.text(value, x + 4, 90)
+    x += 46
+  })
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.text('Project summary', 14, 112)
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(10)
+  let cursorY = addWrappedText(doc, project.description || 'No project description added.', 14, 120, 180)
+
+  cursorY += 8
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.text('Competitors', 14, cursorY)
+  cursorY += 8
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  competitors.slice(0, 12).forEach((competitor, index) => {
+    cursorY = addWrappedText(
+      doc,
+      `${index + 1}. ${competitor.business_name} - ${competitor.website_url || 'No website'} - ${competitor.location || 'No location'}`,
+      14,
+      cursorY,
+      180,
+      5,
+      278,
+    )
+    cursorY += 2
+  })
+
+  doc.addPage()
+  doc.setTextColor(6, 45, 66)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(18)
+  doc.text('SEO signals and recommendations', 14, 22)
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(10)
+  cursorY = addWrappedText(doc, seoPayload.summary || 'No SEO analysis has been run yet.', 14, 34, 180)
+
+  cursorY += 8
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.text('Recommendations', 14, cursorY)
+  cursorY += 8
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  ;(seoPayload.recommendations || []).slice(0, 12).forEach((recommendation, index) => {
+    cursorY = addWrappedText(doc, `${index + 1}. ${recommendation}`, 14, cursorY, 180, 5, 160)
+    cursorY += 2
+  })
+
+  cursorY = 178
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.text('SEO rule findings', 14, cursorY)
+  cursorY += 8
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  ;(seoPayload.rules || []).slice(0, 8).forEach((rule) => {
+    cursorY = addWrappedText(doc, `${rule.rule} (${rule.status}): ${rule.finding}`, 14, cursorY, 180, 5, 280)
+    cursorY += 2
+  })
+
+  doc.save(`${fileBase}-analytics.pdf`)
+}
+
 function App() {
   const rootRef = useRef(null)
   const [authMode, setAuthMode] = useState(null)
@@ -236,6 +349,7 @@ function App() {
   const [competitorSource, setCompetitorSource] = useState('')
   const [featureJobs, setFeatureJobs] = useState({})
   const [hiddenJobPopups, setHiddenJobPopups] = useState({})
+  const [unreadFeatureDots, setUnreadFeatureDots] = useState({})
   const isAdministrator = Boolean(
     user
       && `${user.displayName || ''} ${user.email || ''}`.toLowerCase().includes('nulltek'),
@@ -477,6 +591,9 @@ function App() {
           progress: 100,
         },
       }))
+      if (dashboardTab !== 'competitor search') {
+        setUnreadFeatureDots((current) => ({ ...current, competitor_search: true }))
+      }
       setActionStatus(
         data.source === 'openai'
           ? 'Competitors found with OpenAI.'
@@ -531,6 +648,9 @@ function App() {
           progress: 100,
         },
       }))
+      if (dashboardTab !== 'seo analysis') {
+        setUnreadFeatureDots((current) => ({ ...current, seo_analysis: true }))
+      }
       setActionStatus(
         data.analysis?.source === 'openai'
           ? 'SEO analysis complete with OpenAI.'
@@ -550,6 +670,11 @@ function App() {
     } finally {
       setProjectBusy(false)
     }
+  }
+
+  async function saveAnalyticsPdf() {
+    await saveReport(activeProject?.name || 'Analytics report', 'project_analytics')
+    await downloadAnalyticsPdf(activeProject, competitors, seoAnalysis, savedReports, competitorSource)
   }
 
   useGSAP(
@@ -865,12 +990,20 @@ function App() {
                   className={dashboardTab === tab ? 'active' : ''}
                   type="button"
                   key={tab}
-                  onClick={() => setDashboardTab(tab)}
+                  onClick={() => {
+                    setDashboardTab(tab)
+                    if (tab === 'competitor search') {
+                      setUnreadFeatureDots((current) => ({ ...current, competitor_search: false }))
+                    }
+                    if (tab === 'seo analysis') {
+                      setUnreadFeatureDots((current) => ({ ...current, seo_analysis: false }))
+                    }
+                  }}
                 >
                   <Icon size={18} />
                   {tab}
-                  {tab === 'competitor search' && competitorJob?.status === 'done' ? <span className="nav-done-dot" /> : null}
-                  {tab === 'seo analysis' && seoJob?.status === 'done' ? <span className="nav-done-dot" /> : null}
+                  {tab === 'competitor search' && unreadFeatureDots.competitor_search ? <span className="nav-done-dot" /> : null}
+                  {tab === 'seo analysis' && unreadFeatureDots.seo_analysis ? <span className="nav-done-dot" /> : null}
                 </button>
               ))}
             </nav>
@@ -1044,9 +1177,9 @@ function App() {
                       and scan statistics will live for the selected project.
                     </p>
                   </div>
-                  <button className="button light large" type="button" onClick={() => saveReport(activeProject.name)}>
-                    Save analytics report
-                    <ArrowRight size={18} />
+                  <button className="button light large" type="button" onClick={saveAnalyticsPdf}>
+                    Save analytics PDF
+                    <Download size={18} />
                   </button>
                 </div>
               </div>
