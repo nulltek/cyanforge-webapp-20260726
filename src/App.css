@@ -289,6 +289,7 @@ button {
 }
 
 .scan-section,
+.projects-section,
 .interest-section,
 .reports-section,
 .pricing-section,
@@ -299,6 +300,10 @@ button {
 
 .scan-section {
   padding: 96px 0 144px;
+}
+
+.projects-section {
+  padding: 0 0 132px;
 }
 
 .scanner-panel {
@@ -370,6 +375,188 @@ button {
   margin-top: 10px;
   color: rgba(7, 51, 74, 0.6);
   line-height: 1.35;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.35fr);
+  grid-template-areas:
+    'settings console'
+    'form console';
+  gap: 16px;
+}
+
+.settings-card,
+.project-form,
+.project-console,
+.competitor-modal {
+  border: 1px solid rgba(43, 178, 230, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 24px 80px rgba(0, 132, 184, 0.12);
+}
+
+.settings-card {
+  grid-area: settings;
+  padding: 24px;
+}
+
+.project-form {
+  grid-area: form;
+  display: grid;
+  gap: 14px;
+  padding: 24px;
+}
+
+.project-console {
+  grid-area: console;
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  padding: 24px;
+}
+
+.settings-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.settings-heading h3 {
+  margin: 0 0 8px;
+  color: #062d42;
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  line-height: 1;
+}
+
+.settings-heading p {
+  margin: 0;
+  color: rgba(7, 51, 74, 0.62);
+}
+
+.api-key-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.api-key-form input,
+.project-form input,
+.project-form textarea {
+  width: 100%;
+  border: 1px solid rgba(43, 178, 230, 0.2);
+  border-radius: 14px;
+  outline: 0;
+  color: #07334a;
+  background: rgba(255, 255, 255, 0.82);
+  font: inherit;
+}
+
+.api-key-form input,
+.project-form input {
+  min-height: 50px;
+  padding: 0 14px;
+}
+
+.project-form textarea {
+  min-height: 104px;
+  resize: vertical;
+  padding: 14px;
+}
+
+.project-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.project-form label span {
+  color: rgba(7, 51, 74, 0.72);
+  font-size: 0.88rem;
+  font-weight: 780;
+}
+
+.spin-icon {
+  animation: spin 900ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.project-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-height: 42px;
+  margin-bottom: 18px;
+}
+
+.project-tab {
+  min-height: 38px;
+  max-width: 210px;
+  overflow: hidden;
+  border: 1px solid rgba(43, 178, 230, 0.22);
+  border-radius: 999px;
+  padding: 0 13px;
+  color: #07334a;
+  background: rgba(239, 251, 255, 0.82);
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.project-tab.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, #008ec4, #35d4ff);
+}
+
+.competitor-search {
+  width: fit-content;
+}
+
+.competitor-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.competitor-row {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid rgba(43, 178, 230, 0.18);
+  border-radius: 8px;
+  padding: 0 16px;
+  color: #07334a;
+  background: rgba(238, 250, 255, 0.84);
+  font-weight: 850;
+  text-align: left;
+  cursor: pointer;
+}
+
+.competitor-row:hover {
+  background: #ffffff;
+}
+
+.empty-competitors {
+  display: grid;
+  min-height: 220px;
+  place-items: center;
+  border: 1px dashed rgba(43, 178, 230, 0.35);
+  border-radius: 8px;
+  color: rgba(7, 51, 74, 0.56);
+  background: rgba(255, 255, 255, 0.46);
+}
+
+.empty-competitors p {
+  margin: 8px 0 0;
+  font-weight: 800;
 }
 
 .interest-section,
@@ -1044,6 +1231,75 @@ button {
   cursor: pointer;
 }
 
+.competitor-modal {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(240px, 0.82fr) minmax(320px, 1fr);
+  width: min(920px, 100%);
+  max-height: min(680px, calc(100vh - 48px));
+  overflow: hidden;
+}
+
+.competitor-modal-art {
+  min-height: 520px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #ffffff, #dff7ff);
+}
+
+.competitor-modal-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: contrast(0.98) saturate(0.8);
+}
+
+.competitor-modal-body {
+  overflow-y: auto;
+  padding: clamp(1.5rem, 4vw, 3.2rem);
+}
+
+.competitor-modal-body h2 {
+  margin: 0;
+  color: #062d42;
+  font-size: clamp(2.2rem, 4vw, 4.4rem);
+  line-height: 0.96;
+  letter-spacing: 0;
+}
+
+.competitor-modal-body p {
+  color: rgba(7, 51, 74, 0.66);
+  font-size: 1.05rem;
+}
+
+.competitor-details {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.competitor-details span {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(43, 178, 230, 0.18);
+  border-radius: 8px;
+  padding: 12px;
+  color: #07334a;
+  background: rgba(238, 250, 255, 0.72);
+  word-break: break-word;
+}
+
+.competitor-details svg {
+  flex: 0 0 auto;
+  color: #008ec4;
+}
+
+.competitor-details a {
+  color: #007fab;
+  font-weight: 800;
+}
+
 button:disabled {
   cursor: not-allowed;
   opacity: 0.62;
@@ -1064,8 +1320,17 @@ button:disabled {
   .hero-section,
   .workflow-section,
   .section-copy,
-  .pricing-copy {
+  .pricing-copy,
+  .projects-grid,
+  .competitor-modal {
     grid-template-columns: 1fr;
+  }
+
+  .projects-grid {
+    grid-template-areas:
+      'settings'
+      'form'
+      'console';
   }
 
   .hero-section {
@@ -1119,6 +1384,7 @@ button:disabled {
 
   .hero-section,
   .scan-section,
+  .projects-section,
   .interest-section,
   .reports-section,
   .pricing-section,
@@ -1145,6 +1411,10 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
+  .api-key-form {
+    grid-template-columns: 1fr;
+  }
+
   .stack-card,
   .footer-section {
     flex-direction: column;
@@ -1160,6 +1430,10 @@ button:disabled {
   }
 
   .auth-media {
+    min-height: 180px;
+  }
+
+  .competitor-modal-art {
     min-height: 180px;
   }
 }

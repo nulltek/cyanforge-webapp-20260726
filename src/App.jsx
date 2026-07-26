@@ -6,15 +6,23 @@ import {
   ArrowRight,
   BarChart3,
   Bell,
+  Building2,
   Check,
   ChevronRight,
   CircleDollarSign,
+  ExternalLink,
   FileText,
   Globe2,
+  Image,
+  KeyRound,
+  LoaderCircle,
   LockKeyhole,
   LogOut,
   LogIn,
   Mail,
+  MapPin,
+  Phone,
+  Plus,
   Radar,
   Search,
   ShieldCheck,
@@ -156,10 +164,26 @@ function App() {
   const [actionStatus, setActionStatus] = useState('Ready to save scans and reports')
   const [savedReports, setSavedReports] = useState([])
   const [activeAnalysis, setActiveAnalysis] = useState(null)
+  const [openAiStatus, setOpenAiStatus] = useState({ configured: false, model: 'gpt-5.5', reasoningEffort: 'low' })
+  const [openAiKey, setOpenAiKey] = useState('')
+  const [openAiSaving, setOpenAiSaving] = useState(false)
+  const [projectForm, setProjectForm] = useState({
+    name: '',
+    description: '',
+    imageUrl: '',
+    websiteUrl: '',
+  })
+  const [projects, setProjects] = useState([])
+  const [activeProjectId, setActiveProjectId] = useState(null)
+  const [competitors, setCompetitors] = useState([])
+  const [selectedCompetitor, setSelectedCompetitor] = useState(null)
+  const [projectBusy, setProjectBusy] = useState(false)
+  const [competitorSource, setCompetitorSource] = useState('')
   const isAdministrator = Boolean(
     user
       && `${user.displayName || ''} ${user.email || ''}`.toLowerCase().includes('nulltek'),
   )
+  const activeProject = projects.find((project) => project.id === activeProjectId) || projects[0] || null
 
   useEffect(() => listenToAuthState(setUser), [])
 
@@ -167,8 +191,15 @@ function App() {
     apiRequest('/api/health')
       .then((data) => {
         setActionStatus(data.database ? 'Database connected' : 'Database not configured')
+        setOpenAiStatus((current) => ({ ...current, configured: Boolean(data.openai) }))
       })
       .catch((error) => setActionStatus(error.message))
+
+    apiRequest('/api/settings/openai')
+      .then((data) => setOpenAiStatus(data))
+      .catch((error) => setActionStatus(error.message))
+
+    loadProjects(null)
   }, [])
 
   useEffect(() => {
@@ -191,7 +222,20 @@ function App() {
     apiRequest(`/api/reports?userId=${encodeURIComponent(user.uid)}`)
       .then((data) => setSavedReports(data.reports || []))
       .catch((error) => setActionStatus(error.message))
+
+    loadProjects(user.uid)
   }, [user])
+
+  useEffect(() => {
+    if (!activeProjectId) {
+      setCompetitors([])
+      return
+    }
+
+    apiRequest(`/api/projects/${activeProjectId}/competitors`)
+      .then((data) => setCompetitors(data.competitors || []))
+      .catch((error) => setActionStatus(error.message))
+  }, [activeProjectId])
 
   async function saveScan(mode = 'site_scan') {
     setActionStatus('Saving scan draft...')
@@ -237,6 +281,101 @@ function App() {
       setActionStatus(`Report saved as #${data.report.id}`)
     } catch (error) {
       setActionStatus(error.message)
+    }
+  }
+
+  async function saveOpenAiKey(event) {
+    event.preventDefault()
+    setOpenAiSaving(true)
+    setActionStatus('Saving OpenAI key...')
+
+    try {
+      const data = await apiRequest('/api/settings/openai', {
+        method: 'POST',
+        body: JSON.stringify({ apiKey: openAiKey }),
+      })
+
+      setOpenAiStatus(data)
+      setOpenAiKey('')
+      setActionStatus('OpenAI key saved. Competitor search can use GPT-5.5 low effort.')
+    } catch (error) {
+      setActionStatus(error.message)
+    } finally {
+      setOpenAiSaving(false)
+    }
+  }
+
+  function updateProjectField(event) {
+    setProjectForm((current) => ({ ...current, [event.target.name]: event.target.value }))
+  }
+
+  async function loadProjects(userId = user?.uid) {
+    try {
+      const query = userId ? `?userId=${encodeURIComponent(userId)}` : ''
+      const data = await apiRequest(`/api/projects${query}`)
+      const nextProjects = data.projects || []
+      setProjects(nextProjects)
+      setActiveProjectId((current) => current || nextProjects[0]?.id || null)
+    } catch (error) {
+      setActionStatus(error.message)
+    }
+  }
+
+  async function createProject(event) {
+    event.preventDefault()
+    setProjectBusy(true)
+    setActionStatus('Creating project...')
+
+    try {
+      const data = await apiRequest('/api/projects', {
+        method: 'POST',
+        body: JSON.stringify({
+          userId: user?.uid,
+          name: projectForm.name,
+          description: projectForm.description,
+          imageUrl: projectForm.imageUrl,
+          websiteUrl: projectForm.websiteUrl,
+        }),
+      })
+
+      setProjects((current) => [data.project, ...current])
+      setActiveProjectId(data.project.id)
+      setCompetitors([])
+      setProjectForm({ name: '', description: '', imageUrl: '', websiteUrl: '' })
+      setActionStatus(`Project "${data.project.name}" created`)
+    } catch (error) {
+      setActionStatus(error.message)
+    } finally {
+      setProjectBusy(false)
+    }
+  }
+
+  async function searchCompetitors() {
+    if (!activeProjectId) {
+      setActionStatus('Create a project first.')
+      return
+    }
+
+    setProjectBusy(true)
+    setActionStatus('Searching competitors with GPT-5.5 low effort...')
+    setCompetitorSource('')
+
+    try {
+      const data = await apiRequest(`/api/projects/${activeProjectId}/competitors/search`, {
+        method: 'POST',
+      })
+
+      setCompetitors(data.competitors || [])
+      setCompetitorSource(data.source || '')
+      setActionStatus(
+        data.source === 'openai'
+          ? 'Competitors found with OpenAI.'
+          : 'Competitor placeholders shown. Save OpenAI key to run live search.',
+      )
+    } catch (error) {
+      setActionStatus(error.message)
+    } finally {
+      setProjectBusy(false)
     }
   }
 
@@ -471,6 +610,164 @@ function App() {
         </div>
       </section>
 
+      <section className="projects-section">
+        <div className="section-copy">
+          <h2>Project workspace for real competitor research.</h2>
+          <p>
+            Save a project, add the website URL, then run competitor discovery through the
+            OpenAI Responses API using GPT-5.5 with low reasoning effort.
+          </p>
+        </div>
+
+        <div className="projects-grid">
+          <div className="settings-card">
+            <div className="settings-heading">
+              <span className="card-icon">
+                <KeyRound size={20} />
+              </span>
+              <div>
+                <h3>OpenAI API access</h3>
+                <p>
+                  {openAiStatus.configured
+                    ? `${openAiStatus.model} ready on ${openAiStatus.reasoningEffort} effort`
+                    : 'Paste your key once to enable live competitor search.'}
+                </p>
+              </div>
+            </div>
+            <form className="api-key-form" onSubmit={saveOpenAiKey}>
+              <input
+                type="password"
+                value={openAiKey}
+                onChange={(event) => setOpenAiKey(event.target.value)}
+                placeholder="sk-..."
+                aria-label="OpenAI API key"
+                autoComplete="off"
+              />
+              <button className="button light" type="submit" disabled={openAiSaving || !openAiKey.trim()}>
+                {openAiSaving ? <LoaderCircle size={17} className="spin-icon" /> : <KeyRound size={17} />}
+                Save key
+              </button>
+            </form>
+          </div>
+
+          <form className="project-form" onSubmit={createProject}>
+            <div className="settings-heading">
+              <span className="card-icon">
+                <Plus size={20} />
+              </span>
+              <div>
+                <h3>Create project</h3>
+                <p>Name and website are required. Description and image are optional.</p>
+              </div>
+            </div>
+            <label>
+              <span>Project name</span>
+              <input
+                name="name"
+                value={projectForm.name}
+                onChange={updateProjectField}
+                placeholder="NullTek growth audit"
+                required
+              />
+            </label>
+            <label>
+              <span>Project description</span>
+              <textarea
+                name="description"
+                value={projectForm.description}
+                onChange={updateProjectField}
+                placeholder="Short business context, market, customers, or offer."
+              />
+            </label>
+            <label>
+              <span>Project image URL</span>
+              <div className="field-shell">
+                <Image size={17} />
+                <input
+                  name="imageUrl"
+                  value={projectForm.imageUrl}
+                  onChange={updateProjectField}
+                  placeholder="https://..."
+                />
+              </div>
+            </label>
+            <label>
+              <span>Website URL</span>
+              <div className="field-shell">
+                <Globe2 size={17} />
+                <input
+                  name="websiteUrl"
+                  value={projectForm.websiteUrl}
+                  onChange={updateProjectField}
+                  placeholder="https://company.com"
+                  required
+                />
+              </div>
+            </label>
+            <button className="button light auth-submit" type="submit" disabled={projectBusy}>
+              {projectBusy ? <LoaderCircle size={17} className="spin-icon" /> : <Plus size={17} />}
+              Create project
+            </button>
+          </form>
+
+          <div className="project-console">
+            <div className="settings-heading">
+              <span className="card-icon">
+                <Building2 size={20} />
+              </span>
+              <div>
+                <h3>Competitor finder</h3>
+                <p>{activeProject ? activeProject.website_url : 'Create a project to start.'}</p>
+              </div>
+            </div>
+
+            <div className="project-tabs">
+              {projects.map((project) => (
+                <button
+                  className={project.id === activeProjectId ? 'project-tab active' : 'project-tab'}
+                  type="button"
+                  key={project.id}
+                  onClick={() => setActiveProjectId(project.id)}
+                >
+                  {project.name}
+                </button>
+              ))}
+            </div>
+
+            <button className="button light large competitor-search" type="button" onClick={searchCompetitors} disabled={projectBusy || !activeProject}>
+              {projectBusy ? <LoaderCircle size={18} className="spin-icon" /> : <Search size={18} />}
+              Search competitors
+            </button>
+
+            {competitorSource ? (
+              <p className="storage-status">
+                Source: {competitorSource === 'openai' ? 'OpenAI live search' : 'fallback placeholders'}
+              </p>
+            ) : null}
+
+            <div className="competitor-list">
+              {competitors.map((competitor) => (
+                <button
+                  className="competitor-row"
+                  type="button"
+                  key={competitor.id}
+                  onClick={() => setSelectedCompetitor(competitor)}
+                >
+                  <span>{competitor.business_name}</span>
+                  <ChevronRight size={17} />
+                </button>
+              ))}
+              {!competitors.length ? (
+                <div className="empty-competitors">
+                  <Search size={22} />
+                  <p>No competitors searched yet.</p>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="interest-section">
         <div className="section-copy">
           <h2>Everything the finished product needs is already visible.</h2>
@@ -638,6 +935,48 @@ function App() {
           onClose={() => setAuthMode(null)}
           onModeChange={setAuthMode}
         />
+      ) : null}
+
+      {selectedCompetitor ? (
+        <div className="auth-backdrop" role="presentation">
+          <section className="competitor-modal" role="dialog" aria-modal="true" aria-labelledby="competitor-title">
+            <button className="auth-close" type="button" aria-label="Close competitor details" onClick={() => setSelectedCompetitor(null)}>
+              <X size={19} />
+            </button>
+            <div className="competitor-modal-art" aria-hidden="true">
+              <img src={visualDataUri(selectedCompetitor.business_name || 'Competitor profile', 1)} alt="" />
+            </div>
+            <div className="competitor-modal-body">
+              <p className="auth-kicker">Competitor profile</p>
+              <h2 id="competitor-title">{selectedCompetitor.business_name}</h2>
+              <p>{selectedCompetitor.description || 'No description found yet.'}</p>
+              <div className="competitor-details">
+                <span>
+                  <MapPin size={17} />
+                  {selectedCompetitor.location || 'Location not found'}
+                </span>
+                <span>
+                  <Mail size={17} />
+                  {selectedCompetitor.email || 'Email not found'}
+                </span>
+                <span>
+                  <Phone size={17} />
+                  {selectedCompetitor.phone || 'Phone not found'}
+                </span>
+                <span>
+                  <ExternalLink size={17} />
+                  {selectedCompetitor.website_url ? (
+                    <a href={selectedCompetitor.website_url} target="_blank" rel="noreferrer">
+                      {selectedCompetitor.website_url}
+                    </a>
+                  ) : (
+                    'Website not found'
+                  )}
+                </span>
+              </div>
+            </div>
+          </section>
+        </div>
       ) : null}
     </main>
   )
