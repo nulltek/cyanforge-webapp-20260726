@@ -394,7 +394,7 @@ app.post('/api/settings/openai', async (request, response) => {
   try {
     await requireAdministrator(request)
 
-    const { apiKey, featureId = 'competitor_search' } = request.body
+    const { apiKey, featureId = 'competitor_search' } = request.body || {}
     const feature = apiKeyFeatures.find((item) => item.id === featureId)
     const trimmedKey = String(apiKey || '').trim()
 

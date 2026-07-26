@@ -222,7 +222,7 @@ function App() {
       const data = await apiRequest('/api/settings/openai', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ apiKey: openAiKeys[featureId], featureId }),
+        body: JSON.stringify({ apiKey: String(openAiKeys[featureId] || '').trim(), featureId }),
       })
 
       setOpenAiStatus(data)
