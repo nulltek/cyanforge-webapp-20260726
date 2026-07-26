@@ -120,12 +120,21 @@ function App() {
   const [selectedCompetitor, setSelectedCompetitor] = useState(null)
   const [projectBusy, setProjectBusy] = useState(false)
   const [competitorSource, setCompetitorSource] = useState('')
+  const [featureJobs, setFeatureJobs] = useState({})
+  const [hiddenJobPopups, setHiddenJobPopups] = useState({})
   const isAdministrator = Boolean(
     user
       && `${user.displayName || ''} ${user.email || ''}`.toLowerCase().includes('nulltek'),
   )
   const activeProject = projects.find((project) => project.id === activeProjectId) || projects[0] || null
   const competitorSearchKey = openAiStatus.features.find((feature) => feature.id === 'competitor_search')
+  const competitorJob = featureJobs.competitor_search
+  const showCompetitorMiniProgress = Boolean(
+    competitorJob
+      && competitorJob.status === 'running'
+      && dashboardTab !== 'competitor search'
+      && !hiddenJobPopups.competitor_search,
+  )
 
   useEffect(() => listenToAuthState(setUser), [])
 
@@ -178,6 +187,31 @@ function App() {
       .then((data) => setCompetitors(data.competitors || []))
       .catch((error) => setActionStatus(error.message))
   }, [activeProjectId])
+
+  useEffect(() => {
+    const hasRunningJob = Object.values(featureJobs).some((job) => job.status === 'running')
+
+    if (!hasRunningJob) {
+      return undefined
+    }
+
+    const timer = window.setInterval(() => {
+      setFeatureJobs((current) => {
+        const next = { ...current }
+        for (const [featureId, job] of Object.entries(next)) {
+          if (job.status === 'running') {
+            next[featureId] = {
+              ...job,
+              progress: Math.min(92, job.progress + Math.max(2, Math.round((100 - job.progress) * 0.08))),
+            }
+          }
+        }
+        return next
+      })
+    }, 850)
+
+    return () => window.clearInterval(timer)
+  }, [featureJobs])
 
   async function saveReport(title, reportType = 'seo_geo') {
     setActionStatus('Saving report draft...')
@@ -291,6 +325,15 @@ function App() {
     setProjectBusy(true)
     setActionStatus('Searching competitors with GPT-5.5 low effort...')
     setCompetitorSource('')
+    setHiddenJobPopups((current) => ({ ...current, competitor_search: false }))
+    setFeatureJobs((current) => ({
+      ...current,
+      competitor_search: {
+        label: 'Competitor search',
+        status: 'running',
+        progress: 8,
+      },
+    }))
 
     try {
       const data = await apiRequest(`/api/projects/${activeProjectId}/competitors/search`, {
@@ -299,12 +342,30 @@ function App() {
 
       setCompetitors(data.competitors || [])
       setCompetitorSource(data.source || '')
+      setFeatureJobs((current) => ({
+        ...current,
+        competitor_search: {
+          ...current.competitor_search,
+          label: 'Competitor search',
+          status: 'done',
+          progress: 100,
+        },
+      }))
       setActionStatus(
         data.source === 'openai'
           ? 'Competitors found with OpenAI.'
           : 'Competitor placeholders shown. Save the competitor search API key to run live search.',
       )
     } catch (error) {
+      setFeatureJobs((current) => ({
+        ...current,
+        competitor_search: {
+          ...current.competitor_search,
+          label: 'Competitor search',
+          status: 'failed',
+          progress: 100,
+        },
+      }))
       setActionStatus(error.message)
     } finally {
       setProjectBusy(false)
@@ -627,6 +688,7 @@ function App() {
                 >
                   <Icon size={18} />
                   {tab}
+                  {tab === 'competitor search' && competitorJob?.status === 'done' ? <span className="nav-done-dot" /> : null}
                 </button>
               ))}
             </nav>
@@ -660,6 +722,17 @@ function App() {
                 <p className="eyebrow">Competitor search</p>
                 <h1>Find competing businesses for {activeProject.name}.</h1>
                 <p>{competitorSource ? `Source: ${competitorSource === 'openai' ? 'OpenAI live search' : 'fallback placeholders'}` : actionStatus}</p>
+                {competitorJob?.status === 'running' ? (
+                  <div className="feature-progress">
+                    <div className="feature-progress-meta">
+                      <span>Competitor search running</span>
+                      <strong>{competitorJob.progress}%</strong>
+                    </div>
+                    <div className="feature-progress-track">
+                      <span style={{ width: `${competitorJob.progress}%` }} />
+                    </div>
+                  </div>
+                ) : null}
                 <button className="button light large competitor-search" type="button" onClick={searchCompetitors} disabled={projectBusy}>
                   {projectBusy ? <LoaderCircle size={18} className="spin-icon" /> : <Search size={18} />}
                   Search competitors
@@ -766,6 +839,25 @@ function App() {
               </div>
             </div>
           </section>
+        </div>
+      ) : null}
+
+      {showCompetitorMiniProgress ? (
+        <div className="floating-progress" role="status" aria-live="polite">
+          <div className="floating-progress-copy">
+            <span>{competitorJob.label}</span>
+            <strong>{competitorJob.progress}%</strong>
+          </div>
+          <div className="feature-progress-track">
+            <span style={{ width: `${competitorJob.progress}%` }} />
+          </div>
+          <button
+            type="button"
+            aria-label="Close progress popup"
+            onClick={() => setHiddenJobPopups((current) => ({ ...current, competitor_search: true }))}
+          >
+            <X size={16} />
+          </button>
         </div>
       ) : null}
     </main>
