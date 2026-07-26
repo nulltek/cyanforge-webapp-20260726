@@ -41,7 +41,6 @@ const features = [
     icon: Radar,
     title: 'Website scan command center',
     body: 'Paste a URL, preview crawl depth, robots status, indexability, page templates, and structured data coverage before running a paid report.',
-    metric: '384 signals mapped',
     action: 'Run site scan',
     analysis: 'Scan analytics',
   },
@@ -50,7 +49,6 @@ const features = [
     icon: Search,
     title: 'Competitor finder',
     body: 'Discover competing domains from SERPs, category language, backlinks, and AI answer overlap.',
-    metric: '12 likely rivals',
     action: 'Find competitors',
     analysis: 'Competitor analytics',
   },
@@ -59,7 +57,6 @@ const features = [
     icon: BarChart3,
     title: 'SEO and GEO comparison',
     body: 'Compare rankings, answer-engine visibility, schema gaps, topical authority, and content freshness.',
-    metric: '+31% opportunity',
     action: 'Compare visibility',
     analysis: 'SEO and GEO analytics',
   },
@@ -68,7 +65,6 @@ const features = [
     icon: FileText,
     title: 'Report builder',
     body: 'Create board-ready reports with sections, screenshots, tasks, and share links.',
-    metric: '4 draft reports',
     action: 'Build report',
     analysis: 'Report analytics',
   },
@@ -77,7 +73,6 @@ const features = [
     icon: LockKeyhole,
     title: 'Access control',
     body: 'Manage seats, plan limits, billing rules, and administrator overrides from one entitlement surface.',
-    metric: 'Admin bypass ready',
     action: 'Review access',
     analysis: 'Access analytics',
   },
@@ -116,8 +111,8 @@ function visualDataUri(title, variant = 0) {
       <circle cx="180" cy="720" r="220" fill="${cyan}" opacity=".05"/>
       <rect x="108" y="96" width="984" height="628" rx="42" fill="#ffffff" opacity=".84" stroke="${cyan}" stroke-opacity=".28"/>
       <rect x="158" y="150" width="414" height="44" rx="22" fill="${ink}" opacity=".88"/>
-      <rect x="158" y="220" width="250" height="22" rx="11" fill="${cyan}" opacity=".28"/>
-      <rect x="158" y="264" width="326" height="22" rx="11" fill="${cyan}" opacity=".16"/>
+      <rect x="158" y="220" width="250" height="18" rx="9" fill="${cyan}" opacity=".16"/>
+      <rect x="158" y="258" width="326" height="18" rx="9" fill="${cyan}" opacity=".09"/>
       <rect x="160" y="348" width="250" height="242" rx="28" fill="${wash}" stroke="${cyan}" stroke-opacity=".22"/>
       <rect x="460" y="348" width="250" height="242" rx="28" fill="#ffffff" stroke="${cyan}" stroke-opacity=".22"/>
       <rect x="760" y="348" width="250" height="242" rx="28" fill="${wash}" stroke="${cyan}" stroke-opacity=".22"/>
@@ -250,7 +245,7 @@ function App() {
       ...feature,
       accent: index,
       rows: [
-        ['Primary signal', feature.metric],
+        ['Process', feature.action],
         ['Access state', isAdministrator ? 'Administrator access' : 'Subscription required for export'],
         ['Next action', feature.action],
       ],
@@ -486,7 +481,7 @@ function App() {
         </div>
         <div className="bento-grid">
           {features.map((feature, index) => {
-            const { className, icon: Icon, title, body, metric, action } = feature
+            const { className, icon: Icon, title, body, action } = feature
 
             return (
               <article className={className} key={title}>
@@ -497,11 +492,12 @@ function App() {
                   />
                 </div>
                 <div className="card-content">
-                  <Icon size={22} />
+                  <span className="card-icon">
+                    <Icon size={20} />
+                  </span>
                   <h3>{title}</h3>
                   <p>{body}</p>
                   <div className="card-footer">
-                    <strong>{metric}</strong>
                     <button className="button light" type="button" onClick={() => startAnalysis(feature, index)}>
                       {action}
                       <ArrowRight size={16} />
