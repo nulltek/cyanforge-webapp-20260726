@@ -21,6 +21,7 @@ import {
   LogIn,
   Mail,
   MapPin,
+  Newspaper,
   Phone,
   Plus,
   Search,
@@ -210,7 +211,7 @@ async function downloadSeoPdf(project, analysis) {
   doc.save(`${fileBase}-seo-improvements.pdf`)
 }
 
-async function downloadAnalyticsPdf(project, competitors, seoAnalysis, reports, competitorSource) {
+async function downloadAnalyticsPdf(project, competitors, seoAnalysis, articleDraft, reports, competitorSource) {
   if (!project) {
     return
   }
@@ -219,6 +220,7 @@ async function downloadAnalyticsPdf(project, competitors, seoAnalysis, reports, 
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const fileBase = project.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'analytics-report'
   const seoPayload = seoAnalysis?.payload || {}
+  const articlePayload = articleDraft?.payload || {}
 
   doc.setProperties({
     title: `${project.name} analytics report`,
@@ -246,18 +248,19 @@ async function downloadAnalyticsPdf(project, competitors, seoAnalysis, reports, 
     ['Competitor source', competitorSource || 'None'],
     ['SEO score', scoreText],
     ['Reports saved', String(reports.length)],
+    ['Article draft', articlePayload.title ? 'Ready' : 'None'],
   ]
 
   let x = 14
   metricCards.forEach(([label, value]) => {
     doc.setDrawColor(53, 212, 255)
-    doc.roundedRect(x, 70, 42, 26, 3, 3)
+    doc.roundedRect(x, 70, 34, 26, 3, 3)
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(8)
     doc.text(label, x + 4, 79)
     doc.setFontSize(13)
     doc.text(value, x + 4, 90)
-    x += 46
+    x += 37
   })
 
   doc.setFont('helvetica', 'bold')
@@ -320,6 +323,21 @@ async function downloadAnalyticsPdf(project, competitors, seoAnalysis, reports, 
     cursorY += 2
   })
 
+  if (articlePayload.title) {
+    doc.addPage()
+    doc.setTextColor(6, 45, 66)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(18)
+    doc.text('Latest article draft', 14, 22)
+    doc.setFontSize(14)
+    doc.text(articlePayload.title, 14, 36)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(9)
+    cursorY = addWrappedText(doc, articlePayload.trendSummary || '', 14, 46, 180, 5, 76)
+    cursorY += 8
+    cursorY = addWrappedText(doc, articlePayload.postText || '', 14, cursorY, 180, 5, 278)
+  }
+
   doc.save(`${fileBase}-analytics.pdf`)
 }
 
@@ -344,6 +362,7 @@ function App() {
   const [activeProjectId, setActiveProjectId] = useState(null)
   const [competitors, setCompetitors] = useState([])
   const [seoAnalysis, setSeoAnalysis] = useState(null)
+  const [articleDraft, setArticleDraft] = useState(null)
   const [selectedCompetitor, setSelectedCompetitor] = useState(null)
   const [projectBusy, setProjectBusy] = useState(false)
   const [competitorSource, setCompetitorSource] = useState('')
@@ -359,6 +378,8 @@ function App() {
   const competitorJob = featureJobs.competitor_search
   const seoAnalysisKey = openAiStatus.features.find((feature) => feature.id === 'seo_analysis')
   const seoJob = featureJobs.seo_analysis
+  const blogWriterKey = openAiStatus.features.find((feature) => feature.id === 'blog_writer')
+  const blogJob = featureJobs.blog_writer
   const showCompetitorMiniProgress = Boolean(
     competitorJob
       && competitorJob.status === 'running'
@@ -370,6 +391,12 @@ function App() {
       && seoJob.status === 'running'
       && dashboardTab !== 'seo analysis'
       && !hiddenJobPopups.seo_analysis,
+  )
+  const showBlogMiniProgress = Boolean(
+    blogJob
+      && blogJob.status === 'running'
+      && dashboardTab !== 'blog writer'
+      && !hiddenJobPopups.blog_writer,
   )
 
   useEffect(() => listenToAuthState(setUser), [])
@@ -425,6 +452,10 @@ function App() {
 
     apiRequest(`/api/projects/${activeProjectId}/seo/latest`)
       .then((data) => setSeoAnalysis(data.analysis))
+      .catch((error) => setActionStatus(error.message))
+
+    apiRequest(`/api/projects/${activeProjectId}/articles/latest`)
+      .then((data) => setArticleDraft(data.article))
       .catch((error) => setActionStatus(error.message))
   }, [activeProjectId])
 
@@ -674,7 +705,64 @@ function App() {
 
   async function saveAnalyticsPdf() {
     await saveReport(activeProject?.name || 'Analytics report', 'project_analytics')
-    await downloadAnalyticsPdf(activeProject, competitors, seoAnalysis, savedReports, competitorSource)
+    await downloadAnalyticsPdf(activeProject, competitors, seoAnalysis, articleDraft, savedReports, competitorSource)
+  }
+
+  async function writeBlogArticle() {
+    if (!activeProjectId) {
+      setActionStatus('Create a project first.')
+      return
+    }
+
+    setProjectBusy(true)
+    setActionStatus('Writing blog/news article with GPT-5.5 medium effort...')
+    setHiddenJobPopups((current) => ({ ...current, blog_writer: false }))
+    setFeatureJobs((current) => ({
+      ...current,
+      blog_writer: {
+        label: 'Blog/news writer',
+        status: 'running',
+        progress: 8,
+      },
+    }))
+
+    try {
+      const data = await apiRequest(`/api/projects/${activeProjectId}/articles/write`, {
+        method: 'POST',
+      })
+
+      setArticleDraft(data.article)
+      setFeatureJobs((current) => ({
+        ...current,
+        blog_writer: {
+          ...current.blog_writer,
+          label: 'Blog/news writer',
+          status: 'done',
+          progress: 100,
+        },
+      }))
+      if (dashboardTab !== 'blog writer') {
+        setUnreadFeatureDots((current) => ({ ...current, blog_writer: true }))
+      }
+      setActionStatus(
+        data.article?.source === 'openai'
+          ? 'Blog/news article written with OpenAI.'
+          : 'Placeholder article shown. Save the blog and news writer API key to run live trend analysis.',
+      )
+    } catch (error) {
+      setFeatureJobs((current) => ({
+        ...current,
+        blog_writer: {
+          ...current.blog_writer,
+          label: 'Blog/news writer',
+          status: 'failed',
+          progress: 100,
+        },
+      }))
+      setActionStatus(error.message)
+    } finally {
+      setProjectBusy(false)
+    }
   }
 
   useGSAP(
@@ -984,6 +1072,7 @@ function App() {
                 ['details', FileText],
                 ['competitor search', Search],
                 ['seo analysis', Globe2],
+                ['blog writer', Newspaper],
                 ['analytics', BarChart3],
               ].map(([tab, Icon]) => (
                 <button
@@ -998,12 +1087,16 @@ function App() {
                     if (tab === 'seo analysis') {
                       setUnreadFeatureDots((current) => ({ ...current, seo_analysis: false }))
                     }
+                    if (tab === 'blog writer') {
+                      setUnreadFeatureDots((current) => ({ ...current, blog_writer: false }))
+                    }
                   }}
                 >
                   <Icon size={18} />
                   {tab}
                   {tab === 'competitor search' && unreadFeatureDots.competitor_search ? <span className="nav-done-dot" /> : null}
                   {tab === 'seo analysis' && unreadFeatureDots.seo_analysis ? <span className="nav-done-dot" /> : null}
+                  {tab === 'blog writer' && unreadFeatureDots.blog_writer ? <span className="nav-done-dot" /> : null}
                 </button>
               ))}
             </nav>
@@ -1027,6 +1120,10 @@ function App() {
                   <article className="analytics-card">
                     <span>SEO key</span>
                     <strong>{seoAnalysisKey?.configured ? 'Connected' : 'Missing'}</strong>
+                  </article>
+                  <article className="analytics-card">
+                    <span>Blog key</span>
+                    <strong>{blogWriterKey?.configured ? 'Connected' : 'Missing'}</strong>
                   </article>
                   <article className="analytics-card">
                     <span>Competitors</span>
@@ -1146,6 +1243,63 @@ function App() {
               </div>
             ) : null}
 
+            {dashboardTab === 'blog writer' ? (
+              <div className="dashboard-panel">
+                <p className="eyebrow">Blog/news writer</p>
+                <h1>Write a trend-aware article for {activeProject.name}.</h1>
+                <p>{actionStatus}</p>
+                {blogJob?.status === 'running' ? (
+                  <div className="feature-progress">
+                    <div className="feature-progress-meta">
+                      <span>Blog/news writer running</span>
+                      <strong>{blogJob.progress}%</strong>
+                    </div>
+                    <div className="feature-progress-track">
+                      <span style={{ width: `${blogJob.progress}%` }} />
+                    </div>
+                  </div>
+                ) : null}
+                <button className="button light large competitor-search" type="button" onClick={writeBlogArticle} disabled={projectBusy}>
+                  {projectBusy ? <LoaderCircle size={18} className="spin-icon" /> : <Newspaper size={18} />}
+                  Write article
+                </button>
+
+                {articleDraft ? (
+                  <div className="article-report">
+                    <article className="article-summary-card">
+                      <span>{articleDraft.source === 'openai' ? 'Live trend draft' : 'Placeholder draft'}</span>
+                      <h2>{articleDraft.payload?.title}</h2>
+                      <p>{articleDraft.payload?.excerpt}</p>
+                      <small>{articleDraft.payload?.slug}</small>
+                    </article>
+                    <article className="article-trends-card">
+                      <h3>Trend angle</h3>
+                      <p>{articleDraft.payload?.trendSummary}</p>
+                    </article>
+                    <article className="article-trends-card">
+                      <h3>Competitor angles</h3>
+                      {(articleDraft.payload?.competitorAngles || []).map((item) => (
+                        <p key={`${item.businessName}-${item.angle}`}>
+                          <strong>{item.businessName}</strong>
+                          {item.angle}
+                        </p>
+                      ))}
+                    </article>
+                    <article className="article-body-card">
+                      <h3>Post text</h3>
+                      <pre>{articleDraft.payload?.postText}</pre>
+                      <p className="article-cta">{articleDraft.payload?.callToAction}</p>
+                    </article>
+                  </div>
+                ) : (
+                  <div className="empty-competitors">
+                    <Newspaper size={22} />
+                    <p>No article written yet.</p>
+                  </div>
+                )}
+              </div>
+            ) : null}
+
             {dashboardTab === 'analytics' ? (
               <div className="dashboard-panel">
                 <p className="eyebrow">Analytics</p>
@@ -1166,6 +1320,10 @@ function App() {
                   <article className="analytics-card">
                     <span>SEO score</span>
                     <strong>{seoAnalysis?.payload?.score != null ? `${Number(seoAnalysis.payload.score).toFixed(1)}/10` : 'None'}</strong>
+                  </article>
+                  <article className="analytics-card">
+                    <span>Latest article</span>
+                    <strong>{articleDraft?.payload?.title || 'None'}</strong>
                   </article>
                 </div>
                 <div className="analytics-panel">
@@ -1270,6 +1428,25 @@ function App() {
             type="button"
             aria-label="Close SEO progress popup"
             onClick={() => setHiddenJobPopups((current) => ({ ...current, seo_analysis: true }))}
+          >
+            <X size={16} />
+          </button>
+        </div>
+      ) : null}
+
+      {showBlogMiniProgress ? (
+        <div className="floating-progress" role="status" aria-live="polite">
+          <div className="floating-progress-copy">
+            <span>{blogJob.label}</span>
+            <strong>{blogJob.progress}%</strong>
+          </div>
+          <div className="feature-progress-track">
+            <span style={{ width: `${blogJob.progress}%` }} />
+          </div>
+          <button
+            type="button"
+            aria-label="Close blog writer progress popup"
+            onClick={() => setHiddenJobPopups((current) => ({ ...current, blog_writer: true }))}
           >
             <X size={16} />
           </button>

@@ -26,6 +26,12 @@ const apiKeyFeatures = [
     model: 'gpt-5.5',
     reasoningEffort: 'low',
   },
+  {
+    id: 'blog_writer',
+    label: 'Blog and news writer',
+    model: 'gpt-5.5',
+    reasoningEffort: 'medium',
+  },
 ]
 
 function createPool() {
@@ -142,6 +148,15 @@ async function migrate() {
       created_at timestamptz not null default now()
     );
 
+    create table if not exists articles (
+      id bigserial primary key,
+      project_id bigint references projects(id) on delete cascade,
+      status text not null default 'draft',
+      payload jsonb not null default '{}'::jsonb,
+      source text not null default 'fallback',
+      created_at timestamptz not null default now()
+    );
+
     alter table competitors
       add column if not exists project_id bigint references projects(id) on delete cascade,
       add column if not exists business_name text,
@@ -215,6 +230,22 @@ function parseSeoPayload(text) {
   }
 }
 
+function parseArticlePayload(text) {
+  const trimmed = text.trim()
+  const jsonMatch = trimmed.match(/\{[\s\S]*\}/)
+  const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : trimmed)
+
+  return {
+    title: String(parsed.title || '').trim(),
+    slug: String(parsed.slug || '').trim(),
+    excerpt: String(parsed.excerpt || '').trim(),
+    trendSummary: String(parsed.trendSummary || '').trim(),
+    competitorAngles: Array.isArray(parsed.competitorAngles) ? parsed.competitorAngles.slice(0, 8) : [],
+    postText: String(parsed.postText || '').trim(),
+    callToAction: String(parsed.callToAction || '').trim(),
+  }
+}
+
 function fallbackCompetitors(project) {
   const host = new URL(project.website_url).hostname.replace(/^www\./, '')
   const base = project.name || host
@@ -260,6 +291,21 @@ function fallbackSeoAnalysis(project, competitors) {
       `Audit ${project.website_url} against current on-page SEO basics.`,
       'Run competitor search first for stronger comparison context.',
     ],
+  }
+}
+
+function fallbackArticle(project, competitors) {
+  return {
+    title: `${project.name}: What buyers should watch this week`,
+    slug: `${project.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-market-watch`,
+    excerpt: 'A placeholder post draft shown until the blog writer API key is saved.',
+    trendSummary: 'Live internet trend analysis requires the blog and news writer API key.',
+    competitorAngles: competitors.slice(0, 5).map((competitor) => ({
+      businessName: competitor.business_name,
+      angle: 'Review this competitor for timely content angles, launches, offers, and positioning.',
+    })),
+    postText: `# ${project.name}: What buyers should watch this week\n\nThe market around ${project.name} is moving quickly. Teams should publish useful, timely content that answers buyer questions clearly, compares common options, and explains what makes the business different.\n\nStart with practical advice, current customer pain points, and a clear next step. Add competitor-aware context once live trend research is enabled.`,
+    callToAction: `Explore ${project.name} and compare your options with confidence.`,
   }
 }
 
@@ -473,6 +519,73 @@ Score must be from 0 to 10, where 10 is excellent SEO. Rules to cover: title tag
   }
 
   return { analysis: parseSeoPayload(getOutputText(data)), source: 'openai' }
+}
+
+async function writeArticleWithOpenAI(project, competitors, seoAnalysis) {
+  const apiKey = await readOpenAiKey('blog_writer')
+
+  if (!apiKey) {
+    return { article: fallbackArticle(project, competitors), source: 'fallback' }
+  }
+
+  const competitorContext = competitors.length
+    ? competitors.map((competitor) => `- ${competitor.business_name}: ${competitor.website_url || 'No website found'}; ${competitor.description || 'No description'}`).join('\n')
+    : 'No saved competitors yet. Use current web trend research for likely market peers.'
+  const seoContext = seoAnalysis?.payload
+    ? `SEO score: ${seoAnalysis.payload.score}/10. Recommendations: ${(seoAnalysis.payload.recommendations || []).join('; ')}`
+    : 'No SEO analysis saved yet.'
+
+  const prompt = `
+Write a blog/news article draft for this business.
+
+Project name: ${project.name}
+Project description: ${project.description || 'Not provided'}
+Website URL: ${project.website_url}
+
+Saved competitors:
+${competitorContext}
+
+SEO context:
+${seoContext}
+
+Analyze current internet trends, current news hooks, search demand, and what competitors appear to be discussing or promoting. Then write one useful post draft for the business.
+
+Return only valid JSON in this shape:
+{
+  "title": "Article title",
+  "slug": "article-slug",
+  "excerpt": "Short excerpt",
+  "trendSummary": "What current trend/news angle the article uses",
+  "competitorAngles": [
+    { "businessName": "Competitor", "angle": "What they seem to be doing or what content gap exists" }
+  ],
+  "postText": "Full article body in markdown, 700-1000 words, with headings",
+  "callToAction": "One CTA sentence"
+}
+`
+
+  const response = await fetch('https://api.openai.com/v1/responses', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-5.5',
+      reasoning: { effort: 'medium' },
+      tools: [{ type: 'web_search', search_context_size: 'low' }],
+      tool_choice: 'auto',
+      input: [{ role: 'user', content: prompt }],
+    }),
+  })
+
+  const data = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    throw new Error(data.error?.message || 'OpenAI article writer failed')
+  }
+
+  return { article: parseArticlePayload(getOutputText(data)), source: 'openai' }
 }
 
 app.get('/api/health', async (_request, response) => {
@@ -776,6 +889,71 @@ app.post('/api/projects/:projectId/seo/analyze', async (request, response) => {
     )
 
     response.status(201).json({ analysis: result.rows[0] })
+  } catch (error) {
+    response.status(500).json({ error: error.message })
+  }
+})
+
+app.get('/api/projects/:projectId/articles/latest', async (request, response) => {
+  try {
+    const result = await query(
+      `
+        select *
+        from articles
+        where project_id = $1
+        order by created_at desc
+        limit 1
+      `,
+      [request.params.projectId],
+    )
+
+    response.json({ article: result.rows[0] || null })
+  } catch (error) {
+    response.status(500).json({ error: error.message })
+  }
+})
+
+app.post('/api/projects/:projectId/articles/write', async (request, response) => {
+  try {
+    const projectResult = await query('select * from projects where id = $1', [request.params.projectId])
+    const project = projectResult.rows[0]
+
+    if (!project) {
+      response.status(404).json({ error: 'Project not found' })
+      return
+    }
+
+    const competitorsResult = await query(
+      `
+        select *
+        from competitors
+        where project_id = $1
+        order by id asc
+      `,
+      [project.id],
+    )
+    const seoResult = await query(
+      `
+        select *
+        from seo_analyses
+        where project_id = $1
+        order by created_at desc
+        limit 1
+      `,
+      [project.id],
+    )
+
+    const { article, source } = await writeArticleWithOpenAI(project, competitorsResult.rows, seoResult.rows[0])
+    const result = await query(
+      `
+        insert into articles (project_id, payload, source)
+        values ($1, $2, $3)
+        returning *
+      `,
+      [project.id, article, source],
+    )
+
+    response.status(201).json({ article: result.rows[0] })
   } catch (error) {
     response.status(500).json({ error: error.message })
   }

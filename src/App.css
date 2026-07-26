@@ -1339,6 +1339,65 @@ button {
   margin-top: 2px;
 }
 
+.article-report {
+  display: grid;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.article-summary-card,
+.article-trends-card,
+.article-body-card {
+  border: 1px solid rgba(43, 178, 230, 0.18);
+  border-radius: 8px;
+  padding: 20px;
+  background: rgba(238, 250, 255, 0.72);
+}
+
+.article-summary-card span,
+.article-summary-card small {
+  color: rgba(7, 51, 74, 0.56);
+  font-weight: 850;
+}
+
+.article-summary-card h2,
+.article-trends-card h3,
+.article-body-card h3 {
+  margin: 8px 0 12px;
+  color: #062d42;
+  line-height: 1;
+}
+
+.article-summary-card h2 {
+  font-size: clamp(2rem, 3vw, 3.2rem);
+}
+
+.article-summary-card p,
+.article-trends-card p,
+.article-cta {
+  color: rgba(7, 51, 74, 0.66);
+}
+
+.article-trends-card strong {
+  display: block;
+  color: #008ec4;
+}
+
+.article-body-card pre {
+  overflow-x: auto;
+  white-space: pre-wrap;
+  color: #07334a;
+  font: inherit;
+  line-height: 1.55;
+}
+
+.article-cta {
+  border-top: 1px solid rgba(43, 178, 230, 0.18);
+  margin-top: 16px;
+  padding-top: 16px;
+  font-weight: 850;
+}
+
 .saved-report-list span {
   padding: 8px 12px;
   border: 1px solid rgba(43, 178, 230, 0.18);
