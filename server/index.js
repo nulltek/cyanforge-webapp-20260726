@@ -1,4 +1,5 @@
 import express from 'express'
+import crypto from 'node:crypto'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Pool } from 'pg'
@@ -204,7 +205,39 @@ async function readOpenAiKey() {
   }
 
   const result = await query('select value from app_settings where key = $1', ['openai_api_key'])
-  return result.rows[0]?.value || ''
+  const savedValue = result.rows[0]?.value || ''
+  return decryptSetting(savedValue)
+}
+
+function settingSecret() {
+  return crypto
+    .createHash('sha256')
+    .update(process.env.OPENAI_KEY_ENCRYPTION_SECRET || process.env.DATABASE_URL || 'cyanforge-local-dev')
+    .digest()
+}
+
+function encryptSetting(value) {
+  const iv = crypto.randomBytes(12)
+  const cipher = crypto.createCipheriv('aes-256-gcm', settingSecret(), iv)
+  const encrypted = Buffer.concat([cipher.update(value, 'utf8'), cipher.final()])
+  const tag = cipher.getAuthTag()
+
+  return `v1:${iv.toString('base64')}:${tag.toString('base64')}:${encrypted.toString('base64')}`
+}
+
+function decryptSetting(value) {
+  if (!value || !value.startsWith('v1:')) {
+    return value || ''
+  }
+
+  const [, ivBase64, tagBase64, encryptedBase64] = value.split(':')
+  const decipher = crypto.createDecipheriv('aes-256-gcm', settingSecret(), Buffer.from(ivBase64, 'base64'))
+  decipher.setAuthTag(Buffer.from(tagBase64, 'base64'))
+
+  return Buffer.concat([
+    decipher.update(Buffer.from(encryptedBase64, 'base64')),
+    decipher.final(),
+  ]).toString('utf8')
 }
 
 async function findCompetitorsWithOpenAI(project) {
@@ -302,7 +335,7 @@ app.post('/api/settings/openai', async (request, response) => {
           value = excluded.value,
           updated_at = now()
       `,
-      ['openai_api_key', trimmedKey],
+      ['openai_api_key', encryptSetting(trimmedKey)],
     )
 
     response.json({ configured: true, model: 'gpt-5.5', reasoningEffort: 'low' })
