@@ -441,6 +441,25 @@ button {
   gap: 10px;
 }
 
+.admin-lock-note {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(43, 178, 230, 0.18);
+  border-radius: 14px;
+  padding: 12px 14px;
+  color: rgba(7, 51, 74, 0.68);
+  background: rgba(238, 250, 255, 0.74);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.admin-lock-note svg {
+  flex: 0 0 auto;
+  color: #008ec4;
+}
+
 .api-key-form input,
 .project-form input,
 .project-form textarea {

@@ -286,12 +286,20 @@ function App() {
 
   async function saveOpenAiKey(event) {
     event.preventDefault()
+
+    if (!isAdministrator || !user) {
+      setActionStatus('Administrator login required to save OpenAI key.')
+      return
+    }
+
     setOpenAiSaving(true)
     setActionStatus('Saving OpenAI key...')
 
     try {
+      const token = await user.getIdToken()
       const data = await apiRequest('/api/settings/openai', {
         method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
         body: JSON.stringify({ apiKey: openAiKey }),
       })
 
@@ -630,24 +638,33 @@ function App() {
                 <p>
                   {openAiStatus.configured
                     ? `${openAiStatus.model} ready on ${openAiStatus.reasoningEffort} effort`
-                    : 'Paste your key once to enable live competitor search.'}
+                    : isAdministrator
+                      ? 'Paste one admin key once. The app will use it for every workspace user.'
+                      : 'Waiting for an administrator to connect the shared OpenAI key.'}
                 </p>
               </div>
             </div>
-            <form className="api-key-form" onSubmit={saveOpenAiKey}>
-              <input
-                type="password"
-                value={openAiKey}
-                onChange={(event) => setOpenAiKey(event.target.value)}
-                placeholder="sk-..."
-                aria-label="OpenAI API key"
-                autoComplete="off"
-              />
-              <button className="button light" type="submit" disabled={openAiSaving || !openAiKey.trim()}>
-                {openAiSaving ? <LoaderCircle size={17} className="spin-icon" /> : <KeyRound size={17} />}
-                Save key
-              </button>
-            </form>
+            {isAdministrator ? (
+              <form className="api-key-form" onSubmit={saveOpenAiKey}>
+                <input
+                  type="password"
+                  value={openAiKey}
+                  onChange={(event) => setOpenAiKey(event.target.value)}
+                  placeholder="sk-..."
+                  aria-label="OpenAI API key"
+                  autoComplete="off"
+                />
+                <button className="button light" type="submit" disabled={openAiSaving || !openAiKey.trim()}>
+                  {openAiSaving ? <LoaderCircle size={17} className="spin-icon" /> : <KeyRound size={17} />}
+                  Save shared key
+                </button>
+              </form>
+            ) : (
+              <div className="admin-lock-note">
+                <LockKeyhole size={18} />
+                Only the NullTek administrator can add or replace the shared API key.
+              </div>
+            )}
           </div>
 
           <form className="project-form" onSubmit={createProject}>

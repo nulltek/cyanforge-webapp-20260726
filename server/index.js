@@ -2,12 +2,17 @@ import express from 'express'
 import crypto from 'node:crypto'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { createRemoteJWKSet, jwtVerify } from 'jose'
 import { Pool } from 'pg'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const app = express()
 const port = process.env.PORT || 3000
+const firebaseProjectId = process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || ''
+const firebaseJwks = createRemoteJWKSet(
+  new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'),
+)
 
 function createPool() {
   const ssl = process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
@@ -206,7 +211,12 @@ async function readOpenAiKey() {
 
   const result = await query('select value from app_settings where key = $1', ['openai_api_key'])
   const savedValue = result.rows[0]?.value || ''
-  return decryptSetting(savedValue)
+  const decryptedValue = decryptSetting(savedValue)
+  return isLikelyOpenAiKey(decryptedValue) ? decryptedValue : ''
+}
+
+function isLikelyOpenAiKey(value) {
+  return /^sk-[A-Za-z0-9_-]{20,}$/.test(String(value || '').trim())
 }
 
 function settingSecret() {
@@ -238,6 +248,41 @@ function decryptSetting(value) {
     decipher.update(Buffer.from(encryptedBase64, 'base64')),
     decipher.final(),
   ]).toString('utf8')
+}
+
+async function verifyFirebaseUser(request) {
+  if (!firebaseProjectId) {
+    throw new Error('Firebase project id is not configured')
+  }
+
+  const authorization = request.headers.authorization || ''
+  const [, token] = authorization.match(/^Bearer\s+(.+)$/i) || []
+
+  if (!token) {
+    const error = new Error('Admin login is required')
+    error.statusCode = 401
+    throw error
+  }
+
+  const result = await jwtVerify(token, firebaseJwks, {
+    audience: firebaseProjectId,
+    issuer: `https://securetoken.google.com/${firebaseProjectId}`,
+  })
+
+  return result.payload
+}
+
+async function requireAdministrator(request) {
+  const payload = await verifyFirebaseUser(request)
+  const identity = `${payload.name || ''} ${payload.email || ''}`.toLowerCase()
+
+  if (!identity.includes('nulltek')) {
+    const error = new Error('Administrator access is required')
+    error.statusCode = 403
+    throw error
+  }
+
+  return payload
 }
 
 async function findCompetitorsWithOpenAI(project) {
@@ -319,10 +364,12 @@ app.get('/api/settings/openai', async (_request, response) => {
 
 app.post('/api/settings/openai', async (request, response) => {
   try {
+    await requireAdministrator(request)
+
     const { apiKey } = request.body
     const trimmedKey = String(apiKey || '').trim()
 
-    if (!trimmedKey.startsWith('sk-')) {
+    if (!isLikelyOpenAiKey(trimmedKey)) {
       response.status(400).json({ error: 'Enter a valid OpenAI API key.' })
       return
     }
@@ -340,7 +387,7 @@ app.post('/api/settings/openai', async (request, response) => {
 
     response.json({ configured: true, model: 'gpt-5.5', reasoningEffort: 'low' })
   } catch (error) {
-    response.status(500).json({ error: error.message })
+    response.status(error.statusCode || 500).json({ error: error.message })
   }
 })
 
