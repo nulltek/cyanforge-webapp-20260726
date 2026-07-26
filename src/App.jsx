@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import {
   ArrowRight,
   BarChart3,
@@ -23,12 +22,9 @@ import {
   MapPin,
   Phone,
   Plus,
-  Radar,
   Search,
   ShieldCheck,
-  Sparkles,
   UserPlus,
-  Workflow,
   X,
 } from 'lucide-react'
 import {
@@ -40,63 +36,6 @@ import {
   registerWithEmail,
 } from './firebaseAuth'
 import './App.css'
-
-gsap.registerPlugin(ScrollTrigger)
-
-const features = [
-  {
-    className: 'bento-card bento-large',
-    icon: Radar,
-    title: 'Website scan command center',
-    body: 'Paste a URL, preview crawl depth, robots status, indexability, page templates, and structured data coverage before running a paid report.',
-    action: 'Run site scan',
-    analysis: 'Scan analytics',
-  },
-  {
-    className: 'bento-card bento-tall',
-    icon: Search,
-    title: 'Competitor finder',
-    body: 'Discover competing domains from SERPs, category language, backlinks, and AI answer overlap.',
-    action: 'Find competitors',
-    analysis: 'Competitor analytics',
-  },
-  {
-    className: 'bento-card bento-wide',
-    icon: BarChart3,
-    title: 'SEO and GEO comparison',
-    body: 'Compare rankings, answer-engine visibility, schema gaps, topical authority, and content freshness.',
-    action: 'Compare visibility',
-    analysis: 'SEO and GEO analytics',
-  },
-  {
-    className: 'bento-card bento-half',
-    icon: FileText,
-    title: 'Report builder',
-    body: 'Create board-ready reports with sections, screenshots, tasks, and share links.',
-    action: 'Build report',
-    analysis: 'Report analytics',
-  },
-  {
-    className: 'bento-card bento-half',
-    icon: LockKeyhole,
-    title: 'Access control',
-    body: 'Manage seats, plan limits, billing rules, and administrator overrides from one entitlement surface.',
-    action: 'Review access',
-    analysis: 'Access analytics',
-  },
-]
-
-const workflowCards = [
-  ['Scan', 'Crawl the submitted website and map technical, content, and AI-search surfaces.'],
-  ['Compare', 'Pick competitors manually or let the product suggest domains worth benchmarking.'],
-  ['Prioritize', 'Turn gaps into report sections, task lists, owners, and subscription-gated exports.'],
-]
-
-const reportCards = [
-  ['Organic visibility', 'Keyword groups, SERP features, cannibalization, and page-level wins.'],
-  ['AI answer footprint', 'Mention share across answer engines, citation quality, entity gaps, and prompts.'],
-  ['Competitor moat', 'Authority deltas, freshness, backlinks, content depth, and topical coverage.'],
-]
 
 function visualDataUri(title, variant = 0) {
   const palettes = [
@@ -158,12 +97,12 @@ async function apiRequest(path, options = {}) {
 
 function App() {
   const rootRef = useRef(null)
-  const pinnedRef = useRef(null)
   const [authMode, setAuthMode] = useState(null)
   const [user, setUser] = useState(null)
+  const [screen, setScreen] = useState('home')
+  const [dashboardTab, setDashboardTab] = useState('details')
   const [actionStatus, setActionStatus] = useState('Ready to save scans and reports')
   const [savedReports, setSavedReports] = useState([])
-  const [activeAnalysis, setActiveAnalysis] = useState(null)
   const [openAiStatus, setOpenAiStatus] = useState({ configured: false, model: 'gpt-5.5', reasoningEffort: 'low' })
   const [openAiKey, setOpenAiKey] = useState('')
   const [openAiSaving, setOpenAiSaving] = useState(false)
@@ -236,29 +175,6 @@ function App() {
       .then((data) => setCompetitors(data.competitors || []))
       .catch((error) => setActionStatus(error.message))
   }, [activeProjectId])
-
-  async function saveScan(mode = 'site_scan') {
-    setActionStatus('Saving scan draft...')
-
-    try {
-      const data = await apiRequest('/api/scans', {
-        method: 'POST',
-        body: JSON.stringify({
-          userId: user?.uid,
-          url: 'https://example.com',
-          mode,
-          metadata: {
-            source: 'layout_preview',
-            competitors: ['competitor-a.com', 'competitor-b.com'],
-          },
-        }),
-      })
-
-      setActionStatus(`Scan draft saved as #${data.scan.id}`)
-    } catch (error) {
-      setActionStatus(error.message)
-    }
-  }
 
   async function saveReport(title, reportType = 'seo_geo') {
     setActionStatus('Saving report draft...')
@@ -387,20 +303,6 @@ function App() {
     }
   }
 
-  function startAnalysis(feature, index) {
-    setActiveAnalysis({
-      ...feature,
-      accent: index,
-      rows: [
-        ['Process', feature.action],
-        ['Access state', isAdministrator ? 'Administrator access' : 'Subscription required for export'],
-        ['Next action', feature.action],
-      ],
-    })
-    setActionStatus(`${feature.analysis} opened`)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
   useGSAP(
     () => {
       const ctx = gsap.context(() => {
@@ -419,55 +321,12 @@ function App() {
           ease: 'power3.out',
         })
 
-        gsap.from('.scanner-panel', {
+        gsap.from('.projects-grid, .dashboard-shell, .pricing-grid', {
           scale: 0.92,
           opacity: 0,
           duration: 1,
           delay: 0.2,
           ease: 'power3.out',
-        })
-
-        gsap.utils.toArray('.bento-card').forEach((card) => {
-          gsap.from(card, {
-            scrollTrigger: {
-              trigger: card,
-              start: 'top 92%',
-              end: 'top 54%',
-              scrub: true,
-            },
-            scale: 0.9,
-            opacity: 0.48,
-            ease: 'none',
-          })
-        })
-
-        if (pinnedRef.current) {
-          ScrollTrigger.create({
-            trigger: pinnedRef.current,
-            start: 'top top',
-            end: 'bottom bottom',
-            pin: '.workflow-sticky',
-            pinSpacing: false,
-          })
-        }
-
-        gsap.utils.toArray('.stack-card').forEach((card, index) => {
-          gsap.fromTo(
-            card,
-            { y: 90 + index * 26, scale: 0.94, opacity: 0.2 },
-            {
-              y: index * -18,
-              scale: 1,
-              opacity: 1,
-              ease: 'none',
-              scrollTrigger: {
-                trigger: card,
-                start: 'top 92%',
-                end: 'top 58%',
-                scrub: true,
-              },
-            },
-          )
         })
       }, rootRef)
 
@@ -479,16 +338,16 @@ function App() {
   return (
     <main ref={rootRef} className="app-shell overflow-guard">
       <nav className="nav-shell">
-        <a className="brand" href="#top" aria-label="SignalForge home">
+        <button className="brand brand-button" type="button" aria-label="CyanForge home" onClick={() => setScreen('home')}>
           <span className="brand-mark">
             <Globe2 size={18} />
           </span>
           CyanForge
-        </a>
+        </button>
         <div className="nav-links" aria-label="Main navigation">
-          <a href="#scan">Scan</a>
-          <a href="#reports">Reports</a>
-          <a href="#pricing">Pricing</a>
+          <button type="button" onClick={() => setScreen('home')}>Home</button>
+          <button type="button" onClick={() => setScreen('projects')}>Projects</button>
+          <a href="#pricing" onClick={() => setScreen('home')}>Pricing</a>
         </div>
         <div className="nav-actions">
           <button className="icon-button" type="button" aria-label="Open alerts">
@@ -517,434 +376,328 @@ function App() {
         </div>
       </nav>
 
-      {activeAnalysis ? (
-        <section className="analytics-page">
-          <button className="button dark" type="button" onClick={() => setActiveAnalysis(null)}>
-            Back to workspace
-          </button>
-          <div className="analytics-hero">
-            <div>
-              <p className="eyebrow">{activeAnalysis.analysis}</p>
-              <h1>{activeAnalysis.title}</h1>
-              <p>{activeAnalysis.body}</p>
+      {screen === 'home' ? (
+        <>
+          <section id="top" className="hero-section">
+            <div className="hero-art" aria-hidden="true">
+              <img src={visualDataUri('CyanForge visibility map', 0)} alt="" />
             </div>
-            <div className="analytics-visual" aria-hidden="true">
-              <img src={visualDataUri(activeAnalysis.analysis, activeAnalysis.accent)} alt="" />
+            <div className="hero-copy">
+              <p className="eyebrow">Scan once. Decide where search demand moves next.</p>
+              <h1>Audit any website, then compare SEO and AI search visibility against the market.</h1>
+              <p className="hero-body">
+                CyanForge is a subscription workspace for teams that need URL scanning,
+                competitor discovery, GEO visibility analysis, and polished reports from one product surface.
+              </p>
+              <div className="hero-actions">
+                <button className="button light large" type="button" onClick={() => setScreen('projects')}>
+                  Open projects
+                  <ArrowRight size={18} />
+                </button>
+                <a className="button dark large" href="#pricing">
+                  View prices
+                </a>
+              </div>
             </div>
-          </div>
-          <div className="analytics-grid">
-            {activeAnalysis.rows.map(([label, value]) => (
-              <article className="analytics-card" key={label}>
-                <span>{label}</span>
-                <strong>{value}</strong>
-              </article>
-            ))}
-          </div>
-          <div className="analytics-panel">
-            <div>
-              <BarChart3 size={24} />
-              <h2>Process started and routed to analytics.</h2>
+          </section>
+
+          <section className="interest-section landing-intro">
+            <div className="section-copy">
+              <h2>The public page now stays focused on the product story.</h2>
               <p>
-                This page is the future destination for live crawl output, competitor results,
-                GEO comparisons, entitlement checks, and report generation.
+                Statistics, competitor tools, and analytics live inside project dashboards so the
+                homepage can explain the offer and push users into their workspace cleanly.
               </p>
             </div>
-            <button className="button light large" type="button" onClick={() => saveReport(activeAnalysis.title)}>
-              Save analytics report
-              <ArrowRight size={18} />
-            </button>
+          </section>
+
+          <section id="pricing" className="pricing-section">
+            <div className="pricing-copy">
+              <h2>Subscription plans for search visibility work.</h2>
+              <p>
+                Create projects, run competitor discovery, and unlock exports from a persistent
+                account workspace. NullTek administrators keep full access.
+              </p>
+            </div>
+            <div className="pricing-grid">
+              {[
+                ['Starter', '$29', ['3 projects', '10 scans', 'Basic exports']],
+                ['Growth', '$89', ['25 projects', 'Competitor tracking', 'GEO reports']],
+                ['Studio', '$249', ['Unlimited seats', 'White-label reports', 'Priority crawl queue']],
+              ].map(([plan, price, points]) => (
+                <article className="price-card" key={plan}>
+                  <CircleDollarSign size={22} />
+                  <h3>{plan}</h3>
+                  <strong>{price}<small>/mo</small></strong>
+                  {points.map((point) => (
+                    <p key={point}>
+                      <Check size={16} />
+                      {point}
+                    </p>
+                  ))}
+                  <button className={plan === 'Growth' ? 'button light' : 'button dark'} type="button" onClick={() => setScreen('projects')}>
+                    {isAdministrator ? 'Unlocked for NullTek' : 'Choose plan'}
+                  </button>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <footer className="footer-section">
+            <div>
+              <ShieldCheck size={26} />
+              <h2>Start with a project, then run every workflow in its dashboard.</h2>
+            </div>
+            <div className="footer-links">
+              <button type="button" onClick={() => setScreen('home')}>Product</button>
+              <button type="button" onClick={() => setScreen('projects')}>Projects</button>
+              <a href="#pricing">Pricing</a>
+            </div>
+          </footer>
+        </>
+      ) : null}
+
+      {screen === 'projects' ? (
+        <section className="projects-page">
+          <div className="page-heading">
+            <p className="eyebrow">Projects</p>
+            <h1>Choose a workspace or create a new project.</h1>
+            <p>{actionStatus}</p>
+          </div>
+
+          <div className="projects-grid">
+            <div className="settings-card">
+              <div className="settings-heading">
+                <span className="card-icon">
+                  <KeyRound size={20} />
+                </span>
+                <div>
+                  <h3>OpenAI API access</h3>
+                  <p>
+                    {openAiStatus.configured
+                      ? `${openAiStatus.model} ready on ${openAiStatus.reasoningEffort} effort`
+                      : isAdministrator
+                        ? 'Paste one admin key once. The app will use it for every workspace user.'
+                        : 'Waiting for an administrator to connect the shared OpenAI key.'}
+                  </p>
+                </div>
+              </div>
+              {isAdministrator ? (
+                <form className="api-key-form" onSubmit={saveOpenAiKey}>
+                  <input
+                    type="password"
+                    value={openAiKey}
+                    onChange={(event) => setOpenAiKey(event.target.value)}
+                    placeholder="sk-..."
+                    aria-label="OpenAI API key"
+                    autoComplete="off"
+                  />
+                  <button className="button light" type="submit" disabled={openAiSaving || !openAiKey.trim()}>
+                    {openAiSaving ? <LoaderCircle size={17} className="spin-icon" /> : <KeyRound size={17} />}
+                    Save shared key
+                  </button>
+                </form>
+              ) : (
+                <div className="admin-lock-note">
+                  <LockKeyhole size={18} />
+                  Only the NullTek administrator can add or replace the shared API key.
+                </div>
+              )}
+            </div>
+
+            <form className="project-form" onSubmit={createProject}>
+              <div className="settings-heading">
+                <span className="card-icon">
+                  <Plus size={20} />
+                </span>
+                <div>
+                  <h3>Create project</h3>
+                  <p>Name and website are required. Description and image are optional.</p>
+                </div>
+              </div>
+              <label>
+                <span>Project name</span>
+                <input name="name" value={projectForm.name} onChange={updateProjectField} placeholder="NullTek growth audit" required />
+              </label>
+              <label>
+                <span>Project description</span>
+                <textarea name="description" value={projectForm.description} onChange={updateProjectField} placeholder="Short business context, market, customers, or offer." />
+              </label>
+              <label>
+                <span>Project image URL</span>
+                <div className="field-shell">
+                  <Image size={17} />
+                  <input name="imageUrl" value={projectForm.imageUrl} onChange={updateProjectField} placeholder="https://..." />
+                </div>
+              </label>
+              <label>
+                <span>Website URL</span>
+                <div className="field-shell">
+                  <Globe2 size={17} />
+                  <input name="websiteUrl" value={projectForm.websiteUrl} onChange={updateProjectField} placeholder="https://company.com" required />
+                </div>
+              </label>
+              <button className="button light auth-submit" type="submit" disabled={projectBusy}>
+                {projectBusy ? <LoaderCircle size={17} className="spin-icon" /> : <Plus size={17} />}
+                Create project
+              </button>
+            </form>
+
+            <div className="project-list-panel">
+              <div className="settings-heading">
+                <span className="card-icon">
+                  <Building2 size={20} />
+                </span>
+                <div>
+                  <h3>Listed projects</h3>
+                  <p>Select one to open its dashboard.</p>
+                </div>
+              </div>
+              <div className="listed-projects">
+                {projects.map((project) => (
+                  <button
+                    className="listed-project-card"
+                    type="button"
+                    key={project.id}
+                    onClick={() => {
+                      setActiveProjectId(project.id)
+                      setDashboardTab('details')
+                      setScreen('dashboard')
+                    }}
+                  >
+                    <img src={project.image_url || visualDataUri(project.name, 1)} alt="" />
+                    <span>{project.name}</span>
+                    <small>{project.website_url}</small>
+                  </button>
+                ))}
+                {!projects.length ? (
+                  <div className="empty-competitors">
+                    <Building2 size={22} />
+                    <p>No projects yet.</p>
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </section>
-      ) : (
-        <>
-      <section id="top" className="hero-section">
-        <div className="hero-art" aria-hidden="true">
-          <img
-            src={visualDataUri('CyanForge visibility map', 0)}
-            alt=""
-          />
-        </div>
-        <div className="hero-copy">
-          <p className="eyebrow">Scan once. Decide where search demand moves next.</p>
-          <h1>
-            Audit any website, then compare SEO and AI search visibility against the market.
-          </h1>
-          <p className="hero-body">
-            A subscription workspace for teams that need URL scanning, competitor discovery,
-            GEO visibility analysis, and polished reports from one product surface.
-          </p>
-          <div className="hero-actions">
-            <button className="button light large" type="button" onClick={() => saveScan('site_scan')}>
-              <Sparkles size={18} />
-              Start mock scan
-            </button>
-            <button className="button dark large" type="button" onClick={() => saveReport('SEO and GEO comparison')}>
-              View reports
-              <ArrowRight size={18} />
-            </button>
-          </div>
-        </div>
-      </section>
+      ) : null}
 
-      <section id="scan" className="scan-section">
-        <div className="scanner-panel">
-          <div className="scanner-input">
-            <Globe2 size={22} />
-            <input value="https://example.com" aria-label="Website URL" readOnly />
-            <button className="button light" type="button" onClick={() => saveScan('site_scan')}>
-              Scan
-              <ChevronRight size={17} />
+      {screen === 'dashboard' && activeProject ? (
+        <section className="dashboard-shell">
+          <aside className="dashboard-sidebar">
+            <button className="button dark" type="button" onClick={() => setScreen('projects')}>
+              Back to projects
             </button>
-          </div>
-          <p className="storage-status">{actionStatus}</p>
-          <div className="mode-grid" aria-label="Report modes">
-            {[
-              ['SEO audit', 'Technical and content quality'],
-              ['GEO comparison', 'AI answer and citation footprint'],
-              ['Find competitors', 'SERP and category rivals'],
-              ['Create report', 'Export-ready workspace draft'],
-            ].map(([title, body]) => (
-              <button
-                className="mode-card"
-                type="button"
-                key={title}
-                onClick={() => saveScan(title.toLowerCase().replaceAll(' ', '_'))}
-              >
-                <span>{title}</span>
-                <small>{body}</small>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="projects-section">
-        <div className="section-copy">
-          <h2>Project workspace for real competitor research.</h2>
-          <p>
-            Save a project, add the website URL, then run competitor discovery through the
-            OpenAI Responses API using GPT-5.5 with low reasoning effort.
-          </p>
-        </div>
-
-        <div className="projects-grid">
-          <div className="settings-card">
-            <div className="settings-heading">
-              <span className="card-icon">
-                <KeyRound size={20} />
-              </span>
-              <div>
-                <h3>OpenAI API access</h3>
-                <p>
-                  {openAiStatus.configured
-                    ? `${openAiStatus.model} ready on ${openAiStatus.reasoningEffort} effort`
-                    : isAdministrator
-                      ? 'Paste one admin key once. The app will use it for every workspace user.'
-                      : 'Waiting for an administrator to connect the shared OpenAI key.'}
-                </p>
-              </div>
+            <div className="dashboard-project">
+              <img src={activeProject.image_url || visualDataUri(activeProject.name, 2)} alt="" />
+              <h2>{activeProject.name}</h2>
+              <p>{activeProject.website_url}</p>
             </div>
-            {isAdministrator ? (
-              <form className="api-key-form" onSubmit={saveOpenAiKey}>
-                <input
-                  type="password"
-                  value={openAiKey}
-                  onChange={(event) => setOpenAiKey(event.target.value)}
-                  placeholder="sk-..."
-                  aria-label="OpenAI API key"
-                  autoComplete="off"
-                />
-                <button className="button light" type="submit" disabled={openAiSaving || !openAiKey.trim()}>
-                  {openAiSaving ? <LoaderCircle size={17} className="spin-icon" /> : <KeyRound size={17} />}
-                  Save shared key
-                </button>
-              </form>
-            ) : (
-              <div className="admin-lock-note">
-                <LockKeyhole size={18} />
-                Only the NullTek administrator can add or replace the shared API key.
-              </div>
-            )}
-          </div>
-
-          <form className="project-form" onSubmit={createProject}>
-            <div className="settings-heading">
-              <span className="card-icon">
-                <Plus size={20} />
-              </span>
-              <div>
-                <h3>Create project</h3>
-                <p>Name and website are required. Description and image are optional.</p>
-              </div>
-            </div>
-            <label>
-              <span>Project name</span>
-              <input
-                name="name"
-                value={projectForm.name}
-                onChange={updateProjectField}
-                placeholder="NullTek growth audit"
-                required
-              />
-            </label>
-            <label>
-              <span>Project description</span>
-              <textarea
-                name="description"
-                value={projectForm.description}
-                onChange={updateProjectField}
-                placeholder="Short business context, market, customers, or offer."
-              />
-            </label>
-            <label>
-              <span>Project image URL</span>
-              <div className="field-shell">
-                <Image size={17} />
-                <input
-                  name="imageUrl"
-                  value={projectForm.imageUrl}
-                  onChange={updateProjectField}
-                  placeholder="https://..."
-                />
-              </div>
-            </label>
-            <label>
-              <span>Website URL</span>
-              <div className="field-shell">
-                <Globe2 size={17} />
-                <input
-                  name="websiteUrl"
-                  value={projectForm.websiteUrl}
-                  onChange={updateProjectField}
-                  placeholder="https://company.com"
-                  required
-                />
-              </div>
-            </label>
-            <button className="button light auth-submit" type="submit" disabled={projectBusy}>
-              {projectBusy ? <LoaderCircle size={17} className="spin-icon" /> : <Plus size={17} />}
-              Create project
-            </button>
-          </form>
-
-          <div className="project-console">
-            <div className="settings-heading">
-              <span className="card-icon">
-                <Building2 size={20} />
-              </span>
-              <div>
-                <h3>Competitor finder</h3>
-                <p>{activeProject ? activeProject.website_url : 'Create a project to start.'}</p>
-              </div>
-            </div>
-
-            <div className="project-tabs">
-              {projects.map((project) => (
+            <nav className="dashboard-nav" aria-label="Project dashboard navigation">
+              {[
+                ['details', FileText],
+                ['competitor search', Search],
+                ['analytics', BarChart3],
+              ].map(([tab, Icon]) => (
                 <button
-                  className={project.id === activeProjectId ? 'project-tab active' : 'project-tab'}
+                  className={dashboardTab === tab ? 'active' : ''}
                   type="button"
-                  key={project.id}
-                  onClick={() => setActiveProjectId(project.id)}
+                  key={tab}
+                  onClick={() => setDashboardTab(tab)}
                 >
-                  {project.name}
+                  <Icon size={18} />
+                  {tab}
                 </button>
               ))}
-            </div>
+            </nav>
+          </aside>
 
-            <button className="button light large competitor-search" type="button" onClick={searchCompetitors} disabled={projectBusy || !activeProject}>
-              {projectBusy ? <LoaderCircle size={18} className="spin-icon" /> : <Search size={18} />}
-              Search competitors
-            </button>
-
-            {competitorSource ? (
-              <p className="storage-status">
-                Source: {competitorSource === 'openai' ? 'OpenAI live search' : 'fallback placeholders'}
-              </p>
+          <div className="dashboard-content">
+            {dashboardTab === 'details' ? (
+              <div className="dashboard-panel">
+                <p className="eyebrow">Details</p>
+                <h1>{activeProject.name}</h1>
+                <p>{activeProject.description || 'No project description added yet.'}</p>
+                <div className="analytics-grid">
+                  <article className="analytics-card">
+                    <span>Website</span>
+                    <strong>{activeProject.website_url}</strong>
+                  </article>
+                  <article className="analytics-card">
+                    <span>OpenAI</span>
+                    <strong>{openAiStatus.configured ? 'Connected' : 'Missing'}</strong>
+                  </article>
+                  <article className="analytics-card">
+                    <span>Competitors</span>
+                    <strong>{competitors.length}</strong>
+                  </article>
+                </div>
+              </div>
             ) : null}
 
-            <div className="competitor-list">
-              {competitors.map((competitor) => (
-                <button
-                  className="competitor-row"
-                  type="button"
-                  key={competitor.id}
-                  onClick={() => setSelectedCompetitor(competitor)}
-                >
-                  <span>{competitor.business_name}</span>
-                  <ChevronRight size={17} />
+            {dashboardTab === 'competitor search' ? (
+              <div className="dashboard-panel">
+                <p className="eyebrow">Competitor search</p>
+                <h1>Find competing businesses for {activeProject.name}.</h1>
+                <p>{competitorSource ? `Source: ${competitorSource === 'openai' ? 'OpenAI live search' : 'fallback placeholders'}` : actionStatus}</p>
+                <button className="button light large competitor-search" type="button" onClick={searchCompetitors} disabled={projectBusy}>
+                  {projectBusy ? <LoaderCircle size={18} className="spin-icon" /> : <Search size={18} />}
+                  Search competitors
                 </button>
-              ))}
-              {!competitors.length ? (
-                <div className="empty-competitors">
-                  <Search size={22} />
-                  <p>No competitors searched yet.</p>
-                </div>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="interest-section">
-        <div className="section-copy">
-          <h2>Everything the finished product needs is already visible.</h2>
-          <p>
-            The layout shows the core product map: URL intake, scan settings, competitor
-            selection, comparison outputs, paid reports, alerts, account access, and billing.
-          </p>
-        </div>
-        <div className="bento-grid">
-          {features.map((feature, index) => {
-            const { className, icon: Icon, title, body, action } = feature
-
-            return (
-              <article className={className} key={title}>
-                <div className="card-image">
-                  <img
-                    src={visualDataUri(title, index + 1)}
-                    alt=""
-                  />
-                </div>
-                <div className="card-content">
-                  <span className="card-icon">
-                    <Icon size={20} />
-                  </span>
-                  <h3>{title}</h3>
-                  <p>{body}</p>
-                  <div className="card-footer">
-                    <button className="button light" type="button" onClick={() => startAnalysis(feature, index)}>
-                      {action}
-                      <ArrowRight size={16} />
+                <div className="competitor-list">
+                  {competitors.map((competitor) => (
+                    <button className="competitor-row" type="button" key={competitor.id} onClick={() => setSelectedCompetitor(competitor)}>
+                      <span>{competitor.business_name}</span>
+                      <ChevronRight size={17} />
                     </button>
-                  </div>
+                  ))}
+                  {!competitors.length ? (
+                    <div className="empty-competitors">
+                      <Search size={22} />
+                      <p>No competitors searched yet.</p>
+                    </div>
+                  ) : null}
                 </div>
-              </article>
-            )
-          })}
-        </div>
-      </section>
-
-      <section ref={pinnedRef} className="workflow-section">
-        <div className="workflow-sticky">
-          <Workflow size={26} />
-          <h2>From raw URL to report in one guided flow.</h2>
-          <p>
-            The interface can grow into a real scanner without changing the product story:
-            start with a domain, choose intent, compare, then publish.
-          </p>
-        </div>
-        <div className="workflow-list">
-          {workflowCards.map(([title, body], index) => (
-            <article className="workflow-card" key={title}>
-              <span>{String(index + 1).padStart(2, '0')}</span>
-              <h3>{title}</h3>
-              <p>{body}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section id="reports" className="reports-section">
-        <div className="section-copy">
-          <h2>Reports feel like a workspace, not a static PDF button.</h2>
-          <p>
-            Users can draft multiple deliverables, revisit findings, and see subscription limits
-            before export or sharing.
-          </p>
-        </div>
-        <div className="report-stage">
-          {reportCards.map(([title, body], index) => (
-            <article className="stack-card" key={title}>
-              <div>
-                <FileText size={22} />
-                <h3>{title}</h3>
-                <p>{body}</p>
               </div>
-              <div className="report-actions">
-                <span>{isAdministrator ? 'Admin unlocked' : index === 0 ? 'Draft' : index === 1 ? 'Ready' : 'Locked'}</span>
-                <button className="button light" type="button" onClick={() => saveReport(title)}>
-                  Save
-                </button>
+            ) : null}
+
+            {dashboardTab === 'analytics' ? (
+              <div className="dashboard-panel">
+                <p className="eyebrow">Analytics</p>
+                <h1>Project statistics and report signals stay here.</h1>
+                <div className="analytics-grid">
+                  <article className="analytics-card">
+                    <span>Competitors found</span>
+                    <strong>{competitors.length}</strong>
+                  </article>
+                  <article className="analytics-card">
+                    <span>Data source</span>
+                    <strong>{competitorSource || 'None'}</strong>
+                  </article>
+                  <article className="analytics-card">
+                    <span>Reports saved</span>
+                    <strong>{savedReports.length}</strong>
+                  </article>
+                </div>
+                <div className="analytics-panel">
+                  <div>
+                    <BarChart3 size={24} />
+                    <h2>Analytics page shell ready for SEO and GEO statistics.</h2>
+                    <p>
+                      This tab is where visibility charts, competitor deltas, report history,
+                      and scan statistics will live for the selected project.
+                    </p>
+                  </div>
+                  <button className="button light large" type="button" onClick={() => saveReport(activeProject.name)}>
+                    Save analytics report
+                    <ArrowRight size={18} />
+                  </button>
+                </div>
               </div>
-            </article>
-          ))}
-        </div>
-        {savedReports.length ? (
-          <div className="saved-report-list">
-            {savedReports.map((report) => (
-              <span key={report.id}>{report.title}</span>
-            ))}
+            ) : null}
           </div>
-        ) : null}
-      </section>
-
-      <section className="marquee-section" aria-label="Comparison surfaces">
-        <div className="marquee-row">
-          <span>Technical SEO</span>
-          <span>Schema</span>
-          <span>AI citations</span>
-          <span>Backlinks</span>
-          <span>Prompts</span>
-          <span>Content gaps</span>
-          <span>Competitors</span>
-        </div>
-        <div className="marquee-row reverse">
-          <span>Reports</span>
-          <span>Seats</span>
-          <span>Exports</span>
-          <span>Alerts</span>
-          <span>Billing</span>
-          <span>Projects</span>
-          <span>Workspaces</span>
-        </div>
-      </section>
-
-      <section id="pricing" className="pricing-section">
-        <div className="pricing-copy">
-          <h2>Subscription shell ready for gated usage.</h2>
-          <p>
-            The visual model includes account creation, login, plan limits, report quotas,
-            competitor slots, team features, and a NullTek administrator override.
-          </p>
-        </div>
-        <div className="pricing-grid">
-          {[
-            ['Starter', '$29', ['3 projects', '10 scans', 'Basic exports']],
-            ['Growth', '$89', ['25 projects', 'Competitor tracking', 'GEO reports']],
-            ['Studio', '$249', ['Unlimited seats', 'White-label reports', 'Priority crawl queue']],
-          ].map(([plan, price, points]) => (
-            <article className="price-card" key={plan}>
-              <CircleDollarSign size={22} />
-              <h3>{plan}</h3>
-              <strong>{price}<small>/mo</small></strong>
-              {points.map((point) => (
-                <p key={point}>
-                  <Check size={16} />
-                  {point}
-                </p>
-              ))}
-              <button className={plan === 'Growth' ? 'button light' : 'button dark'} type="button">
-                {isAdministrator ? 'Unlocked for NullTek' : 'Choose plan'}
-              </button>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <footer className="footer-section">
-        <div>
-          <ShieldCheck size={26} />
-          <h2>Build the scanner on a persistent database foundation.</h2>
-        </div>
-        <div className="footer-links">
-          <a href="#top">Product</a>
-          <a href="#scan">Scan</a>
-          <a href="#reports">Reports</a>
-          <a href="#pricing">Billing</a>
-        </div>
-      </footer>
-        </>
-      )}
+        </section>
+      ) : null}
 
       {authMode ? (
         <AuthModal
