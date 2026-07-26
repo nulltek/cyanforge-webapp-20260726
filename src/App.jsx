@@ -86,6 +86,52 @@ const reportCards = [
   ['Competitor moat', 'Authority deltas, freshness, backlinks, content depth, and topical coverage.'],
 ]
 
+function visualDataUri(title, variant = 0) {
+  const palettes = [
+    ['#ffffff', '#dff7ff', '#00a7df', '#075985'],
+    ['#f8fdff', '#c8f2ff', '#27c3f3', '#0f6c8f'],
+    ['#ffffff', '#e9fbff', '#63d6ff', '#06445f'],
+  ]
+  const [paper, wash, cyan, ink] = palettes[variant % palettes.length]
+  const safeTitle = title.replace(/[<>&]/g, '')
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820">
+      <defs>
+        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0" stop-color="${paper}"/>
+          <stop offset="1" stop-color="${wash}"/>
+        </linearGradient>
+        <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="20"/>
+        </filter>
+      </defs>
+      <rect width="1200" height="820" fill="url(#bg)"/>
+      <circle cx="1000" cy="80" r="190" fill="${cyan}" opacity=".16" filter="url(#soft)"/>
+      <circle cx="180" cy="720" r="220" fill="${cyan}" opacity=".12" filter="url(#soft)"/>
+      <rect x="108" y="96" width="984" height="628" rx="42" fill="#ffffff" opacity=".84" stroke="${cyan}" stroke-opacity=".28"/>
+      <rect x="158" y="150" width="414" height="44" rx="22" fill="${ink}" opacity=".88"/>
+      <rect x="158" y="220" width="250" height="22" rx="11" fill="${cyan}" opacity=".48"/>
+      <rect x="158" y="264" width="326" height="22" rx="11" fill="${cyan}" opacity=".24"/>
+      <rect x="160" y="348" width="250" height="242" rx="28" fill="${wash}" stroke="${cyan}" stroke-opacity=".22"/>
+      <rect x="460" y="348" width="250" height="242" rx="28" fill="#ffffff" stroke="${cyan}" stroke-opacity=".22"/>
+      <rect x="760" y="348" width="250" height="242" rx="28" fill="${wash}" stroke="${cyan}" stroke-opacity=".22"/>
+      <path d="M198 526 C276 402 326 480 386 390" fill="none" stroke="${cyan}" stroke-width="14" stroke-linecap="round"/>
+      <path d="M498 526 C564 470 610 500 678 404" fill="none" stroke="${ink}" stroke-opacity=".42" stroke-width="14" stroke-linecap="round"/>
+      <path d="M798 526 C852 446 924 468 978 382" fill="none" stroke="${cyan}" stroke-width="14" stroke-linecap="round"/>
+      <g fill="${ink}" opacity=".72" font-family="Arial, sans-serif" font-size="34" font-weight="700">
+        <text x="158" y="666">${safeTitle}</text>
+      </g>
+      <g fill="${cyan}" opacity=".58">
+        <circle cx="242" cy="526" r="12"/>
+        <circle cx="626" cy="444" r="12"/>
+        <circle cx="934" cy="456" r="12"/>
+      </g>
+    </svg>
+  `
+
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`
+}
+
 async function apiRequest(path, options = {}) {
   const response = await fetch(path, {
     headers: { 'Content-Type': 'application/json', ...options.headers },
@@ -220,12 +266,12 @@ function App() {
           gsap.from(card, {
             scrollTrigger: {
               trigger: card,
-              start: 'top 82%',
-              end: 'bottom 18%',
+              start: 'top 92%',
+              end: 'top 54%',
               scrub: true,
             },
-            scale: 0.86,
-            opacity: 0.35,
+            scale: 0.9,
+            opacity: 0.48,
             ease: 'none',
           })
         })
@@ -251,8 +297,8 @@ function App() {
               ease: 'none',
               scrollTrigger: {
                 trigger: card,
-                start: 'top 88%',
-                end: 'top 35%',
+                start: 'top 92%',
+                end: 'top 58%',
                 scrub: true,
               },
             },
@@ -312,7 +358,7 @@ function App() {
       <section id="top" className="hero-section">
         <div className="hero-art" aria-hidden="true">
           <img
-            src="https://picsum.photos/seed/search-console-orbit/1400/1100"
+            src={visualDataUri('CyanForge visibility map', 0)}
             alt=""
           />
         </div>
@@ -379,11 +425,11 @@ function App() {
           </p>
         </div>
         <div className="bento-grid">
-          {features.map(({ className, icon: Icon, title, body, metric }) => (
+          {features.map(({ className, icon: Icon, title, body, metric }, index) => (
             <article className={className} key={title}>
               <div className="card-image">
                 <img
-                  src={`https://picsum.photos/seed/${title.replaceAll(' ', '-')}/900/650`}
+                  src={visualDataUri(title, index + 1)}
                   alt=""
                 />
               </div>
@@ -642,7 +688,7 @@ function AuthModal({ mode, onClose, onModeChange }) {
           <X size={19} />
         </button>
         <div className="auth-media" aria-hidden="true">
-          <img src="https://picsum.photos/seed/identity-graph-login/900/1100" alt="" />
+          <img src={visualDataUri('Secure account access', 2)} alt="" />
         </div>
         <div className="auth-panel">
           <p className="auth-kicker">{isRegister ? 'Create workspace access' : 'Welcome back'}</p>

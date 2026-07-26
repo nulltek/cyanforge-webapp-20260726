@@ -224,8 +224,8 @@ button {
   display: grid;
   min-height: 100svh;
   align-items: center;
-  grid-template-columns: minmax(0, 1.08fr) minmax(300px, 0.92fr);
-  gap: clamp(2rem, 5vw, 5rem);
+  grid-template-columns: minmax(300px, 0.62fr) minmax(0, 1.38fr);
+  gap: clamp(2rem, 4vw, 4rem);
   width: min(1240px, calc(100% - 40px));
   margin: 0 auto;
   padding: 132px 0 80px;
@@ -247,8 +247,8 @@ button {
   max-width: min(1180px, 100%);
   margin: 0;
   color: #062d42;
-  font-size: clamp(3rem, 6vw, 6.9rem);
-  line-height: 0.95;
+  font-size: clamp(2.8rem, 4vw, 4.35rem);
+  line-height: 0.98;
   letter-spacing: 0;
 }
 
@@ -261,13 +261,13 @@ button {
 
 .hero-art {
   position: relative;
-  min-height: 620px;
-  border: 1px solid rgba(43, 178, 230, 0.2);
+  min-height: 560px;
+  border: 1px solid rgba(43, 178, 230, 0.28);
   border-radius: 38px;
   overflow: hidden;
-  background: #dff7ff;
+  background: linear-gradient(145deg, #ffffff, #dff7ff);
   transform: rotate(2deg);
-  box-shadow: 0 38px 120px rgba(0, 132, 184, 0.24);
+  box-shadow: 0 38px 120px rgba(0, 132, 184, 0.18);
 }
 
 .hero-art::after {
@@ -275,8 +275,8 @@ button {
   inset: 0;
   content: '';
   background:
-    radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.7) 62%),
-    linear-gradient(180deg, rgba(25, 180, 235, 0.08), rgba(255, 255, 255, 0.7));
+    radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.18) 62%),
+    linear-gradient(180deg, rgba(25, 180, 235, 0.02), rgba(255, 255, 255, 0.18));
 }
 
 .hero-art img,
@@ -285,7 +285,7 @@ button {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: grayscale(0.32) contrast(1.08) saturate(1.12) hue-rotate(156deg);
+  filter: contrast(1.02) saturate(1.08);
   transition: transform 700ms ease;
 }
 
@@ -450,14 +450,16 @@ button {
 .card-image {
   position: absolute;
   inset: 0;
-  opacity: 0.4;
+  opacity: 0.74;
 }
 
 .card-image::after {
   position: absolute;
   inset: 0;
   content: '';
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.94));
+  background:
+    radial-gradient(circle at 82% 12%, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.22) 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.88));
 }
 
 .card-content {
