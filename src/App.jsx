@@ -21,6 +21,7 @@ import {
   LogIn,
   Mail,
   MapPin,
+  MonitorSmartphone,
   Newspaper,
   Phone,
   Plus,
@@ -112,6 +113,150 @@ function addWrappedText(doc, text, x, y, width, lineHeight = 6, maxY = 278) {
   }
 
   return cursorY
+}
+
+function addPdfPageHeader(doc, title) {
+  doc.setTextColor(6, 45, 66)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(16)
+  doc.text(title, 14, 22)
+}
+
+function ensurePdfSpace(doc, cursorY, needed = 28, title = '') {
+  if (cursorY + needed <= 280) {
+    return cursorY
+  }
+
+  doc.addPage()
+  if (title) {
+    addPdfPageHeader(doc, title)
+    return 34
+  }
+  return 22
+}
+
+function addDynamicWrappedText(doc, text, x, cursorY, width, lineHeight = 5, pageTitle = '') {
+  const lines = doc.splitTextToSize(String(text || ''), width)
+  let nextY = cursorY
+
+  for (const line of lines) {
+    nextY = ensurePdfSpace(doc, nextY, lineHeight + 2, pageTitle)
+    doc.text(line, x, nextY)
+    nextY += lineHeight
+  }
+
+  return nextY
+}
+
+function addAuditPdfSection(doc, title, items, cursorY) {
+  let nextY = ensurePdfSpace(doc, cursorY, 18, 'Responsive Layout Audit')
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.text(title, 14, nextY)
+  nextY += 8
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+
+  const safeItems = Array.isArray(items) ? items : []
+  if (!safeItems.length) {
+    nextY = addDynamicWrappedText(doc, 'No issues listed for this section.', 14, nextY, 180, 5, 'Responsive Layout Audit')
+    return nextY + 5
+  }
+
+  safeItems.forEach((item, index) => {
+    nextY = ensurePdfSpace(doc, nextY, 26, 'Responsive Layout Audit')
+    doc.setFont('helvetica', 'bold')
+    doc.text(`${index + 1}. ${item.title || 'Finding'} (${item.severity || 'review'})`, 14, nextY)
+    nextY += 6
+    doc.setFont('helvetica', 'normal')
+    nextY = addDynamicWrappedText(doc, `Finding: ${item.finding || 'No finding text provided.'}`, 18, nextY, 176, 5, 'Responsive Layout Audit')
+    nextY = addDynamicWrappedText(doc, `Fix: ${item.fix || 'Review and correct this item.'}`, 18, nextY + 2, 176, 5, 'Responsive Layout Audit')
+    nextY += 5
+  })
+
+  return nextY + 3
+}
+
+async function downloadLayoutAuditPdf(project, audit) {
+  if (!project || !audit?.payload) {
+    return
+  }
+
+  const { jsPDF } = await import('jspdf')
+  const payload = audit.payload
+  const score = Number(payload.score || 0).toFixed(1)
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+  const fileBase = project.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'layout-audit'
+
+  doc.setProperties({
+    title: `${project.name} responsive layout audit`,
+    subject: 'Mobile, laptop, responsiveness, layout, and branding audit',
+    creator: 'CyanForge',
+  })
+
+  doc.setFillColor(0, 142, 196)
+  doc.rect(0, 0, 210, 30, 'F')
+  doc.setTextColor(255, 255, 255)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(18)
+  doc.text('CyanForge Responsive Layout Audit', 14, 19)
+
+  doc.setTextColor(6, 45, 66)
+  doc.setFontSize(21)
+  doc.text(project.name, 14, 46)
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(10)
+  doc.text(project.website_url, 14, 54)
+
+  doc.setDrawColor(53, 212, 255)
+  doc.roundedRect(150, 40, 42, 28, 3, 3)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(22)
+  doc.text(`${score}/10`, 158, 58)
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.text('Executive summary', 14, 80)
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(10)
+  let cursorY = addDynamicWrappedText(doc, payload.summary || 'No summary available.', 14, 88, 180, 5, 'Responsive Layout Audit')
+
+  const sections = [
+    ['Mobile layout', payload.mobile],
+    ['Laptop layout', payload.laptop],
+    ['Responsiveness and breakpoints', payload.responsiveness],
+    ['Layout issues', payload.layoutIssues],
+    ['Branding issues', payload.brandingIssues],
+    ['Accessibility issues', payload.accessibilityIssues],
+  ]
+
+  sections.forEach(([title, items]) => {
+    cursorY = addAuditPdfSection(doc, title, items, cursorY + 8)
+  })
+
+  cursorY = ensurePdfSpace(doc, cursorY + 4, 20, 'Responsive Layout Audit')
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.text('Quick wins', 14, cursorY)
+  cursorY += 8
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  ;(payload.quickWins || []).forEach((win, index) => {
+    cursorY = addDynamicWrappedText(doc, `${index + 1}. ${win}`, 14, cursorY, 180, 5, 'Responsive Layout Audit') + 2
+  })
+
+  cursorY = ensurePdfSpace(doc, cursorY + 6, 20, 'Responsive Layout Audit')
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.text('Priority roadmap', 14, cursorY)
+  cursorY += 8
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  ;(payload.priorityRoadmap || []).forEach((step, index) => {
+    cursorY = addDynamicWrappedText(doc, `${index + 1}. ${step}`, 14, cursorY, 180, 5, 'Responsive Layout Audit') + 2
+  })
+
+  doc.save(`${fileBase}-responsive-layout-audit.pdf`)
 }
 
 async function downloadSeoPdf(project, analysis) {
@@ -211,7 +356,7 @@ async function downloadSeoPdf(project, analysis) {
   doc.save(`${fileBase}-seo-improvements.pdf`)
 }
 
-async function downloadAnalyticsPdf(project, competitors, seoAnalysis, articleDraft, reports, competitorSource) {
+async function downloadAnalyticsPdf(project, competitors, seoAnalysis, articleDraft, layoutAudit, reports, competitorSource) {
   if (!project) {
     return
   }
@@ -221,6 +366,7 @@ async function downloadAnalyticsPdf(project, competitors, seoAnalysis, articleDr
   const fileBase = project.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'analytics-report'
   const seoPayload = seoAnalysis?.payload || {}
   const articlePayload = articleDraft?.payload || {}
+  const layoutPayload = layoutAudit?.payload || {}
 
   doc.setProperties({
     title: `${project.name} analytics report`,
@@ -247,8 +393,8 @@ async function downloadAnalyticsPdf(project, competitors, seoAnalysis, articleDr
     ['Competitors found', String(competitors.length)],
     ['Competitor source', competitorSource || 'None'],
     ['SEO score', scoreText],
+    ['Layout score', layoutPayload.score != null ? `${Number(layoutPayload.score).toFixed(1)}/10` : 'None'],
     ['Reports saved', String(reports.length)],
-    ['Article draft', articlePayload.title ? 'Ready' : 'None'],
   ]
 
   let x = 14
@@ -338,6 +484,20 @@ async function downloadAnalyticsPdf(project, competitors, seoAnalysis, articleDr
     cursorY = addWrappedText(doc, articlePayload.postText || '', 14, cursorY, 180, 5, 278)
   }
 
+  if (layoutPayload.summary) {
+    doc.addPage()
+    doc.setTextColor(6, 45, 66)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(18)
+    doc.text('Responsive layout audit', 14, 22)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(10)
+    cursorY = addDynamicWrappedText(doc, layoutPayload.summary, 14, 34, 180, 5, 'Responsive layout audit')
+    cursorY = addAuditPdfSection(doc, 'Mobile layout', layoutPayload.mobile, cursorY + 8)
+    cursorY = addAuditPdfSection(doc, 'Laptop layout', layoutPayload.laptop, cursorY + 8)
+    cursorY = addAuditPdfSection(doc, 'Branding issues', layoutPayload.brandingIssues, cursorY + 8)
+  }
+
   doc.save(`${fileBase}-analytics.pdf`)
 }
 
@@ -363,6 +523,7 @@ function App() {
   const [competitors, setCompetitors] = useState([])
   const [seoAnalysis, setSeoAnalysis] = useState(null)
   const [articleDraft, setArticleDraft] = useState(null)
+  const [layoutAudit, setLayoutAudit] = useState(null)
   const [selectedCompetitor, setSelectedCompetitor] = useState(null)
   const [projectBusy, setProjectBusy] = useState(false)
   const [competitorSource, setCompetitorSource] = useState('')
@@ -380,6 +541,8 @@ function App() {
   const seoJob = featureJobs.seo_analysis
   const blogWriterKey = openAiStatus.features.find((feature) => feature.id === 'blog_writer')
   const blogJob = featureJobs.blog_writer
+  const layoutAuditKey = openAiStatus.features.find((feature) => feature.id === 'layout_audit')
+  const layoutJob = featureJobs.layout_audit
   const showCompetitorMiniProgress = Boolean(
     competitorJob
       && competitorJob.status === 'running'
@@ -397,6 +560,12 @@ function App() {
       && blogJob.status === 'running'
       && dashboardTab !== 'blog writer'
       && !hiddenJobPopups.blog_writer,
+  )
+  const showLayoutMiniProgress = Boolean(
+    layoutJob
+      && layoutJob.status === 'running'
+      && dashboardTab !== 'layout audit'
+      && !hiddenJobPopups.layout_audit,
   )
 
   useEffect(() => listenToAuthState(setUser), [])
@@ -456,6 +625,10 @@ function App() {
 
     apiRequest(`/api/projects/${activeProjectId}/articles/latest`)
       .then((data) => setArticleDraft(data.article))
+      .catch((error) => setActionStatus(error.message))
+
+    apiRequest(`/api/projects/${activeProjectId}/layout/latest`)
+      .then((data) => setLayoutAudit(data.audit))
       .catch((error) => setActionStatus(error.message))
   }, [activeProjectId])
 
@@ -705,7 +878,7 @@ function App() {
 
   async function saveAnalyticsPdf() {
     await saveReport(activeProject?.name || 'Analytics report', 'project_analytics')
-    await downloadAnalyticsPdf(activeProject, competitors, seoAnalysis, articleDraft, savedReports, competitorSource)
+    await downloadAnalyticsPdf(activeProject, competitors, seoAnalysis, articleDraft, layoutAudit, savedReports, competitorSource)
   }
 
   async function writeBlogArticle() {
@@ -755,6 +928,63 @@ function App() {
         blog_writer: {
           ...current.blog_writer,
           label: 'Blog/news writer',
+          status: 'failed',
+          progress: 100,
+        },
+      }))
+      setActionStatus(error.message)
+    } finally {
+      setProjectBusy(false)
+    }
+  }
+
+  async function runLayoutAudit() {
+    if (!activeProjectId) {
+      setActionStatus('Create a project first.')
+      return
+    }
+
+    setProjectBusy(true)
+    setActionStatus('Running responsive layout audit with GPT-5.5 medium effort...')
+    setHiddenJobPopups((current) => ({ ...current, layout_audit: false }))
+    setFeatureJobs((current) => ({
+      ...current,
+      layout_audit: {
+        label: 'Responsive layout audit',
+        status: 'running',
+        progress: 8,
+      },
+    }))
+
+    try {
+      const data = await apiRequest(`/api/projects/${activeProjectId}/layout/analyze`, {
+        method: 'POST',
+      })
+
+      setLayoutAudit(data.audit)
+      setFeatureJobs((current) => ({
+        ...current,
+        layout_audit: {
+          ...current.layout_audit,
+          label: 'Responsive layout audit',
+          status: 'done',
+          progress: 100,
+        },
+      }))
+      if (dashboardTab !== 'layout audit') {
+        setUnreadFeatureDots((current) => ({ ...current, layout_audit: true }))
+      }
+      setActionStatus(
+        data.audit?.source === 'openai'
+          ? 'Responsive layout audit complete with OpenAI.'
+          : 'Layout audit placeholder shown. Save the responsive layout audit API key to run live analysis.',
+      )
+    } catch (error) {
+      setFeatureJobs((current) => ({
+        ...current,
+        layout_audit: {
+          ...current.layout_audit,
+          label: 'Responsive layout audit',
           status: 'failed',
           progress: 100,
         },
@@ -1073,6 +1303,7 @@ function App() {
                 ['competitor search', Search],
                 ['seo analysis', Globe2],
                 ['blog writer', Newspaper],
+                ['layout audit', MonitorSmartphone],
                 ['analytics', BarChart3],
               ].map(([tab, Icon]) => (
                 <button
@@ -1090,6 +1321,9 @@ function App() {
                     if (tab === 'blog writer') {
                       setUnreadFeatureDots((current) => ({ ...current, blog_writer: false }))
                     }
+                    if (tab === 'layout audit') {
+                      setUnreadFeatureDots((current) => ({ ...current, layout_audit: false }))
+                    }
                   }}
                 >
                   <Icon size={18} />
@@ -1097,6 +1331,7 @@ function App() {
                   {tab === 'competitor search' && unreadFeatureDots.competitor_search ? <span className="nav-done-dot" /> : null}
                   {tab === 'seo analysis' && unreadFeatureDots.seo_analysis ? <span className="nav-done-dot" /> : null}
                   {tab === 'blog writer' && unreadFeatureDots.blog_writer ? <span className="nav-done-dot" /> : null}
+                  {tab === 'layout audit' && unreadFeatureDots.layout_audit ? <span className="nav-done-dot" /> : null}
                 </button>
               ))}
             </nav>
@@ -1124,6 +1359,10 @@ function App() {
                   <article className="analytics-card">
                     <span>Blog key</span>
                     <strong>{blogWriterKey?.configured ? 'Connected' : 'Missing'}</strong>
+                  </article>
+                  <article className="analytics-card">
+                    <span>Layout audit key</span>
+                    <strong>{layoutAuditKey?.configured ? 'Connected' : 'Missing'}</strong>
                   </article>
                   <article className="analytics-card">
                     <span>Competitors</span>
@@ -1300,6 +1539,105 @@ function App() {
               </div>
             ) : null}
 
+            {dashboardTab === 'layout audit' ? (
+              <div className="dashboard-panel">
+                <p className="eyebrow">Responsive layout audit</p>
+                <h1>Check mobile, laptop, brand, and layout quality for {activeProject.name}.</h1>
+                <p>{actionStatus}</p>
+                {layoutJob?.status === 'running' ? (
+                  <div className="feature-progress">
+                    <div className="feature-progress-meta">
+                      <span>Responsive layout audit running</span>
+                      <strong>{layoutJob.progress}%</strong>
+                    </div>
+                    <div className="feature-progress-track">
+                      <span style={{ width: `${layoutJob.progress}%` }} />
+                    </div>
+                  </div>
+                ) : null}
+                <button className="button light large competitor-search" type="button" onClick={runLayoutAudit} disabled={projectBusy}>
+                  {projectBusy ? <LoaderCircle size={18} className="spin-icon" /> : <MonitorSmartphone size={18} />}
+                  Run layout audit
+                </button>
+
+                {layoutAudit ? (
+                  <div className="seo-report layout-audit-report">
+                    <div className="seo-score-card">
+                      <span>{layoutAudit.source === 'openai' ? 'Live responsive audit' : 'Placeholder audit'}</span>
+                      <strong>{Number(layoutAudit.payload?.score || 0).toFixed(1)}<small>/10</small></strong>
+                      <p>{layoutAudit.payload?.summary || 'No summary available.'}</p>
+                      <button className="button light" type="button" onClick={() => downloadLayoutAuditPdf(activeProject, layoutAudit)}>
+                        <Download size={17} />
+                        Download full PDF
+                      </button>
+                    </div>
+                    <div className="seo-section-grid">
+                      <article>
+                        <h3>Mobile layout</h3>
+                        {(layoutAudit.payload?.mobile || []).map((item) => (
+                          <div className="seo-row" key={`${item.title}-${item.finding}`}>
+                            <span>{item.title}</span>
+                            <strong>{item.severity}</strong>
+                            <p>{item.finding}</p>
+                            <p><b>Fix:</b> {item.fix}</p>
+                          </div>
+                        ))}
+                      </article>
+                      <article>
+                        <h3>Laptop layout</h3>
+                        {(layoutAudit.payload?.laptop || []).map((item) => (
+                          <div className="seo-row" key={`${item.title}-${item.finding}`}>
+                            <span>{item.title}</span>
+                            <strong>{item.severity}</strong>
+                            <p>{item.finding}</p>
+                            <p><b>Fix:</b> {item.fix}</p>
+                          </div>
+                        ))}
+                      </article>
+                    </div>
+                    <div className="seo-section-grid">
+                      <article>
+                        <h3>Responsiveness</h3>
+                        {(layoutAudit.payload?.responsiveness || []).map((item) => (
+                          <div className="seo-row" key={`${item.title}-${item.finding}`}>
+                            <span>{item.title}</span>
+                            <strong>{item.severity}</strong>
+                            <p>{item.finding}</p>
+                            <p><b>Fix:</b> {item.fix}</p>
+                          </div>
+                        ))}
+                      </article>
+                      <article>
+                        <h3>Branding issues</h3>
+                        {(layoutAudit.payload?.brandingIssues || []).map((item) => (
+                          <div className="seo-row" key={`${item.title}-${item.finding}`}>
+                            <span>{item.title}</span>
+                            <strong>{item.severity}</strong>
+                            <p>{item.finding}</p>
+                            <p><b>Fix:</b> {item.fix}</p>
+                          </div>
+                        ))}
+                      </article>
+                    </div>
+                    <article className="seo-recommendations">
+                      <h3>Quick wins</h3>
+                      {(layoutAudit.payload?.quickWins || []).map((win) => (
+                        <p key={win}>
+                          <Check size={16} />
+                          {win}
+                        </p>
+                      ))}
+                    </article>
+                  </div>
+                ) : (
+                  <div className="empty-competitors">
+                    <MonitorSmartphone size={22} />
+                    <p>No responsive layout audit run yet.</p>
+                  </div>
+                )}
+              </div>
+            ) : null}
+
             {dashboardTab === 'analytics' ? (
               <div className="dashboard-panel">
                 <p className="eyebrow">Analytics</p>
@@ -1324,6 +1662,10 @@ function App() {
                   <article className="analytics-card">
                     <span>Latest article</span>
                     <strong>{articleDraft?.payload?.title || 'None'}</strong>
+                  </article>
+                  <article className="analytics-card">
+                    <span>Layout score</span>
+                    <strong>{layoutAudit?.payload?.score != null ? `${Number(layoutAudit.payload.score).toFixed(1)}/10` : 'None'}</strong>
                   </article>
                 </div>
                 <div className="analytics-panel">
@@ -1447,6 +1789,25 @@ function App() {
             type="button"
             aria-label="Close blog writer progress popup"
             onClick={() => setHiddenJobPopups((current) => ({ ...current, blog_writer: true }))}
+          >
+            <X size={16} />
+          </button>
+        </div>
+      ) : null}
+
+      {showLayoutMiniProgress ? (
+        <div className="floating-progress" role="status" aria-live="polite">
+          <div className="floating-progress-copy">
+            <span>{layoutJob.label}</span>
+            <strong>{layoutJob.progress}%</strong>
+          </div>
+          <div className="feature-progress-track">
+            <span style={{ width: `${layoutJob.progress}%` }} />
+          </div>
+          <button
+            type="button"
+            aria-label="Close layout audit progress popup"
+            onClick={() => setHiddenJobPopups((current) => ({ ...current, layout_audit: true }))}
           >
             <X size={16} />
           </button>

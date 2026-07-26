@@ -32,6 +32,12 @@ const apiKeyFeatures = [
     model: 'gpt-5.5',
     reasoningEffort: 'medium',
   },
+  {
+    id: 'layout_audit',
+    label: 'Responsive layout audit',
+    model: 'gpt-5.5',
+    reasoningEffort: 'medium',
+  },
 ]
 
 function createPool() {
@@ -157,6 +163,15 @@ async function migrate() {
       created_at timestamptz not null default now()
     );
 
+    create table if not exists layout_audits (
+      id bigserial primary key,
+      project_id bigint references projects(id) on delete cascade,
+      status text not null default 'complete',
+      payload jsonb not null default '{}'::jsonb,
+      source text not null default 'fallback',
+      created_at timestamptz not null default now()
+    );
+
     alter table competitors
       add column if not exists project_id bigint references projects(id) on delete cascade,
       add column if not exists business_name text,
@@ -246,6 +261,49 @@ function parseArticlePayload(text) {
   }
 }
 
+function normalizeFindingList(value, limit = 24) {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value.slice(0, limit).map((item) => {
+    if (typeof item === 'string') {
+      return {
+        title: item,
+        severity: 'medium',
+        finding: item,
+        fix: 'Review and correct this issue.',
+      }
+    }
+
+    return {
+      title: String(item.title || item.issue || item.rule || 'Layout issue').trim(),
+      severity: String(item.severity || item.status || 'medium').trim(),
+      finding: String(item.finding || item.description || item.problem || '').trim(),
+      fix: String(item.fix || item.recommendation || item.solution || '').trim(),
+    }
+  }).filter((item) => item.title || item.finding || item.fix)
+}
+
+function parseLayoutAuditPayload(text) {
+  const trimmed = text.trim()
+  const jsonMatch = trimmed.match(/\{[\s\S]*\}/)
+  const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : trimmed)
+
+  return {
+    score: Math.max(0, Math.min(10, Number(parsed.score || 0))),
+    summary: String(parsed.summary || '').trim(),
+    mobile: normalizeFindingList(parsed.mobile),
+    laptop: normalizeFindingList(parsed.laptop),
+    responsiveness: normalizeFindingList(parsed.responsiveness),
+    layoutIssues: normalizeFindingList(parsed.layoutIssues),
+    brandingIssues: normalizeFindingList(parsed.brandingIssues),
+    accessibilityIssues: normalizeFindingList(parsed.accessibilityIssues),
+    quickWins: Array.isArray(parsed.quickWins) ? parsed.quickWins.slice(0, 16).map(String) : [],
+    priorityRoadmap: Array.isArray(parsed.priorityRoadmap) ? parsed.priorityRoadmap.slice(0, 16).map(String) : [],
+  }
+}
+
 function fallbackCompetitors(project) {
   const host = new URL(project.website_url).hostname.replace(/^www\./, '')
   const base = project.name || host
@@ -294,6 +352,51 @@ function fallbackSeoAnalysis(project, competitors) {
   }
 }
 
+function fallbackLayoutAudit(project) {
+  return {
+    score: 5.0,
+    summary: 'Placeholder responsive layout audit shown until the responsive layout audit API key is saved.',
+    mobile: [
+      {
+        title: 'Mobile viewport review needed',
+        severity: 'review',
+        finding: 'Check the page at 360px, 390px, and 430px widths for clipped text, overflowing cards, crowded navigation, and tap target spacing.',
+        fix: 'Save the responsive layout audit API key to run a live mobile and laptop layout review.',
+      },
+    ],
+    laptop: [
+      {
+        title: 'Laptop viewport review needed',
+        severity: 'review',
+        finding: 'Check common laptop widths around 1366px and 1440px for excessive empty space, weak hierarchy, and awkward section balance.',
+        fix: 'Run the live audit to compare structure, branding, spacing, and responsive behavior.',
+      },
+    ],
+    responsiveness: [
+      {
+        title: 'Breakpoint checks',
+        severity: 'review',
+        finding: 'Confirm each major section has stable widths, readable headings, and no horizontal scroll across breakpoints.',
+        fix: 'Test mobile, tablet, and laptop breakpoints before shipping.',
+      },
+    ],
+    layoutIssues: [],
+    brandingIssues: [],
+    accessibilityIssues: [],
+    quickWins: [
+      'Save the responsive layout audit API key.',
+      `Audit ${project.website_url} at mobile and laptop widths.`,
+      'Prioritize clipped text, overflow, CTA visibility, navigation usability, and brand consistency.',
+    ],
+    priorityRoadmap: [
+      'Run live audit.',
+      'Fix high-severity mobile layout problems.',
+      'Fix laptop hierarchy and spacing problems.',
+      'Re-check branding and accessibility polish.',
+    ],
+  }
+}
+
 function fallbackArticle(project, competitors) {
   return {
     title: `${project.name}: What buyers should watch this week`,
@@ -306,6 +409,28 @@ function fallbackArticle(project, competitors) {
     })),
     postText: `# ${project.name}: What buyers should watch this week\n\nThe market around ${project.name} is moving quickly. Teams should publish useful, timely content that answers buyer questions clearly, compares common options, and explains what makes the business different.\n\nStart with practical advice, current customer pain points, and a clear next step. Add competitor-aware context once live trend research is enabled.`,
     callToAction: `Explore ${project.name} and compare your options with confidence.`,
+  }
+}
+
+async function fetchWebsiteSnapshot(url) {
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'CyanForgeLayoutAudit/1.0',
+        Accept: 'text/html,application/xhtml+xml',
+      },
+      redirect: 'follow',
+      signal: AbortSignal.timeout(9000),
+    })
+
+    const html = await response.text()
+    return html
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/\s+/g, ' ')
+      .slice(0, 16000)
+  } catch {
+    return ''
   }
 }
 
@@ -586,6 +711,86 @@ Return only valid JSON in this shape:
   }
 
   return { article: parseArticlePayload(getOutputText(data)), source: 'openai' }
+}
+
+async function analyzeLayoutWithOpenAI(project, competitors) {
+  const apiKey = await readOpenAiKey('layout_audit')
+
+  if (!apiKey) {
+    return { audit: fallbackLayoutAudit(project), source: 'fallback' }
+  }
+
+  const competitorContext = competitors.length
+    ? competitors.map((competitor) => `- ${competitor.business_name}: ${competitor.website_url || 'No website found'}`).join('\n')
+    : 'No saved competitors yet. Use current public web context for category norms.'
+  const websiteSnapshot = await fetchWebsiteSnapshot(project.website_url)
+
+  const prompt = `
+Analyze this website's mobile and laptop layout quality.
+
+Project name: ${project.name}
+Project description: ${project.description || 'Not provided'}
+Website URL: ${project.website_url}
+
+Saved competitors:
+${competitorContext}
+
+Fetched page snapshot:
+${websiteSnapshot || 'Fetch unavailable. Use public web search context and visible search snippets.'}
+
+Use current public web information where useful. Judge common mobile widths around 360-430px and laptop widths around 1366-1440px. Look for responsiveness, layout issues, branding consistency, visual hierarchy, navigation, CTA clarity, imagery quality, spacing, overflow risk, accessibility, and competitor/category expectations.
+
+Return only valid JSON in this shape:
+{
+  "score": 0,
+  "summary": "Short executive layout audit summary",
+  "mobile": [
+    { "title": "Issue title", "severity": "critical|high|medium|low|good", "finding": "Concrete mobile finding", "fix": "Specific fix" }
+  ],
+  "laptop": [
+    { "title": "Issue title", "severity": "critical|high|medium|low|good", "finding": "Concrete laptop finding", "fix": "Specific fix" }
+  ],
+  "responsiveness": [
+    { "title": "Issue title", "severity": "critical|high|medium|low|good", "finding": "Breakpoint or scaling finding", "fix": "Specific fix" }
+  ],
+  "layoutIssues": [
+    { "title": "Issue title", "severity": "critical|high|medium|low|good", "finding": "General layout finding", "fix": "Specific fix" }
+  ],
+  "brandingIssues": [
+    { "title": "Issue title", "severity": "critical|high|medium|low|good", "finding": "Branding or visual identity finding", "fix": "Specific fix" }
+  ],
+  "accessibilityIssues": [
+    { "title": "Issue title", "severity": "critical|high|medium|low|good", "finding": "Accessibility finding", "fix": "Specific fix" }
+  ],
+  "quickWins": ["Short fix"],
+  "priorityRoadmap": ["Ordered implementation step"]
+}
+
+Score must be from 0 to 10, where 10 means polished, responsive, accessible, and brand-consistent on mobile and laptop.
+`
+
+  const response = await fetch('https://api.openai.com/v1/responses', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-5.5',
+      reasoning: { effort: 'medium' },
+      tools: [{ type: 'web_search', search_context_size: 'low' }],
+      tool_choice: 'auto',
+      input: [{ role: 'user', content: prompt }],
+    }),
+  })
+
+  const data = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    throw new Error(data.error?.message || 'OpenAI responsive layout audit failed')
+  }
+
+  return { audit: parseLayoutAuditPayload(getOutputText(data)), source: 'openai' }
 }
 
 app.get('/api/health', async (_request, response) => {
@@ -954,6 +1159,61 @@ app.post('/api/projects/:projectId/articles/write', async (request, response) =>
     )
 
     response.status(201).json({ article: result.rows[0] })
+  } catch (error) {
+    response.status(500).json({ error: error.message })
+  }
+})
+
+app.get('/api/projects/:projectId/layout/latest', async (request, response) => {
+  try {
+    const result = await query(
+      `
+        select *
+        from layout_audits
+        where project_id = $1
+        order by created_at desc
+        limit 1
+      `,
+      [request.params.projectId],
+    )
+
+    response.json({ audit: result.rows[0] || null })
+  } catch (error) {
+    response.status(500).json({ error: error.message })
+  }
+})
+
+app.post('/api/projects/:projectId/layout/analyze', async (request, response) => {
+  try {
+    const projectResult = await query('select * from projects where id = $1', [request.params.projectId])
+    const project = projectResult.rows[0]
+
+    if (!project) {
+      response.status(404).json({ error: 'Project not found' })
+      return
+    }
+
+    const competitorsResult = await query(
+      `
+        select *
+        from competitors
+        where project_id = $1
+        order by id asc
+      `,
+      [project.id],
+    )
+
+    const { audit, source } = await analyzeLayoutWithOpenAI(project, competitorsResult.rows)
+    const result = await query(
+      `
+        insert into layout_audits (project_id, payload, source)
+        values ($1, $2, $3)
+        returning *
+      `,
+      [project.id, audit, source],
+    )
+
+    response.status(201).json({ audit: result.rows[0] })
   } catch (error) {
     response.status(500).json({ error: error.message })
   }
