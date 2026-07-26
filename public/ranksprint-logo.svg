@@ -1,0 +1,37 @@
+<svg width="1040" height="260" viewBox="0 0 1040 260" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">RankSprint logo</title>
+  <desc id="desc">A cyan speed-path mark with an upward ranking line, paired with the RankSprint wordmark.</desc>
+  <defs>
+    <linearGradient id="markGradient" x1="36" y1="32" x2="220" y2="224" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6EEBFF"/>
+      <stop offset="0.48" stop-color="#23BEE8"/>
+      <stop offset="1" stop-color="#0C91BD"/>
+    </linearGradient>
+    <linearGradient id="lineGradient" x1="75" y1="156" x2="181" y2="87" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E9FCFF"/>
+      <stop offset="1" stop-color="#FFFFFF"/>
+    </linearGradient>
+    <filter id="softShadow" x="-12%" y="-12%" width="124%" height="128%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#1DB7DE" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#softShadow)">
+    <rect x="30" y="30" width="200" height="200" rx="56" fill="url(#markGradient)"/>
+    <path d="M73 160C100 124 123 137 145 109C158 93 170 83 190 78" stroke="url(#lineGradient)" stroke-width="17" stroke-linecap="round"/>
+    <path d="M174 72L198 76L184 97" stroke="#FFFFFF" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M83 184H187" stroke="#BDF6FF" stroke-width="14" stroke-linecap="round" opacity="0.72"/>
+    <path d="M84 184H111M129 184H156M174 184H187" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round"/>
+    <circle cx="74" cy="160" r="9" fill="#FFFFFF"/>
+    <circle cx="145" cy="109" r="9" fill="#FFFFFF"/>
+  </g>
+
+  <text x="286" y="154"
+        font-family="Geist, Satoshi, Cabinet Grotesk, Arial, sans-serif"
+        font-size="92"
+        font-weight="850"
+        letter-spacing="-1"
+        fill="#053047">RankSprint</text>
+  <path d="M292 185H612" stroke="#22BDE6" stroke-width="10" stroke-linecap="round"/>
+  <path d="M638 185H696" stroke="#053047" stroke-width="10" stroke-linecap="round" opacity="0.18"/>
+</svg>

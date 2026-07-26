@@ -1152,10 +1152,7 @@ function App() {
     <main ref={rootRef} className={`app-shell overflow-guard theme-${themeMode}`}>
       <nav className="nav-shell">
         <button className="brand brand-button" type="button" aria-label="RankSprint home" onClick={() => setScreen('home')}>
-          <span className="brand-mark">
-            <Globe2 size={18} />
-          </span>
-          RankSprint
+          <img className="brand-logo" src="/ranksprint-logo.svg" alt="RankSprint" />
         </button>
         <div className="nav-links" aria-label="Main navigation">
           <button className={screen === 'home' ? 'active' : ''} type="button" onClick={() => setScreen('home')}>{t.home}</button>
