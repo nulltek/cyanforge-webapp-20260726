@@ -20,6 +20,12 @@ const apiKeyFeatures = [
     model: 'gpt-5.5',
     reasoningEffort: 'low',
   },
+  {
+    id: 'seo_analysis',
+    label: 'SEO analysis',
+    model: 'gpt-5.5',
+    reasoningEffort: 'low',
+  },
 ]
 
 function createPool() {
@@ -127,6 +133,15 @@ async function migrate() {
       updated_at timestamptz not null default now()
     );
 
+    create table if not exists seo_analyses (
+      id bigserial primary key,
+      project_id bigint references projects(id) on delete cascade,
+      status text not null default 'complete',
+      payload jsonb not null default '{}'::jsonb,
+      source text not null default 'fallback',
+      created_at timestamptz not null default now()
+    );
+
     alter table competitors
       add column if not exists project_id bigint references projects(id) on delete cascade,
       add column if not exists business_name text,
@@ -184,6 +199,22 @@ function parseCompetitorPayload(text) {
   })).filter((competitor) => competitor.businessName)
 }
 
+function parseSeoPayload(text) {
+  const trimmed = text.trim()
+  const jsonMatch = trimmed.match(/\{[\s\S]*\}/)
+  const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : trimmed)
+
+  return {
+    score: Number(parsed.score || 0),
+    summary: String(parsed.summary || '').trim(),
+    rules: Array.isArray(parsed.rules) ? parsed.rules.slice(0, 12) : [],
+    competitorComparison: Array.isArray(parsed.competitorComparison)
+      ? parsed.competitorComparison.slice(0, 10)
+      : [],
+    recommendations: Array.isArray(parsed.recommendations) ? parsed.recommendations.slice(0, 12) : [],
+  }
+}
+
 function fallbackCompetitors(project) {
   const host = new URL(project.website_url).hostname.replace(/^www\./, '')
   const base = project.name || host
@@ -206,6 +237,30 @@ function fallbackCompetitors(project) {
       websiteUrl: '',
     },
   ]
+}
+
+function fallbackSeoAnalysis(project, competitors) {
+  return {
+    score: 52,
+    summary: 'Placeholder SEO analysis shown until the SEO analysis API key is saved.',
+    rules: [
+      { rule: 'Title tags', status: 'review', finding: 'Check that each important page has one clear title under 60 characters.' },
+      { rule: 'Meta descriptions', status: 'review', finding: 'Write useful descriptions for indexable pages.' },
+      { rule: 'Headings', status: 'review', finding: 'Use one H1 and a logical H2/H3 structure.' },
+      { rule: 'Core Web Vitals', status: 'review', finding: 'Measure mobile performance and interaction delay.' },
+      { rule: 'Indexability', status: 'review', finding: 'Confirm robots, canonicals, and sitemap coverage.' },
+    ],
+    competitorComparison: competitors.slice(0, 5).map((competitor) => ({
+      businessName: competitor.business_name,
+      edge: 'Compare metadata, speed, content depth, backlinks, and local signals.',
+      risk: 'Unknown until live SEO analysis runs.',
+    })),
+    recommendations: [
+      'Save the SEO analysis API key to run live research with web search.',
+      `Audit ${project.website_url} against current on-page SEO basics.`,
+      'Run competitor search first for stronger comparison context.',
+    ],
+  }
 }
 
 function featureSettingKey(featureId) {
@@ -357,6 +412,67 @@ Return 5 to 10 competitors. Do not include the submitted business itself.
   }
 
   return { competitors: parseCompetitorPayload(getOutputText(data)), source: 'openai' }
+}
+
+async function analyzeSeoWithOpenAI(project, competitors) {
+  const apiKey = await readOpenAiKey('seo_analysis')
+
+  if (!apiKey) {
+    return { analysis: fallbackSeoAnalysis(project, competitors), source: 'fallback' }
+  }
+
+  const competitorContext = competitors.length
+    ? competitors.map((competitor) => `- ${competitor.business_name}: ${competitor.website_url || 'No website found'}`).join('\n')
+    : 'No competitors saved yet. Identify broad comparison points from public search context.'
+
+  const prompt = `
+Analyze SEO for this project and compare it against basic SEO rules plus saved competitors.
+
+Project name: ${project.name}
+Project description: ${project.description || 'Not provided'}
+Website URL: ${project.website_url}
+
+Saved competitors:
+${competitorContext}
+
+Use current public web information. Return only valid JSON in this shape:
+{
+  "score": 0,
+  "summary": "Short executive SEO summary",
+  "rules": [
+    { "rule": "Basic SEO rule", "status": "pass|warning|fail|unknown", "finding": "Concrete finding" }
+  ],
+  "competitorComparison": [
+    { "businessName": "Competitor", "edge": "Where they appear stronger or weaker", "risk": "Main SEO risk" }
+  ],
+  "recommendations": ["Specific prioritized recommendation"]
+}
+
+Rules to cover: title tags, meta descriptions, headings, internal links, indexability, mobile performance, structured data, content depth, local/business trust signals, and technical crawlability.
+`
+
+  const response = await fetch('https://api.openai.com/v1/responses', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-5.5',
+      reasoning: { effort: 'low' },
+      tools: [{ type: 'web_search', search_context_size: 'low' }],
+      tool_choice: 'auto',
+      input: [{ role: 'user', content: prompt }],
+    }),
+  })
+
+  const data = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    throw new Error(data.error?.message || 'OpenAI SEO analysis failed')
+  }
+
+  return { analysis: parseSeoPayload(getOutputText(data)), source: 'openai' }
 }
 
 app.get('/api/health', async (_request, response) => {
@@ -605,6 +721,61 @@ app.post('/api/projects/:projectId/competitors/search', async (request, response
     }
 
     response.status(201).json({ competitors: savedCompetitors, source })
+  } catch (error) {
+    response.status(500).json({ error: error.message })
+  }
+})
+
+app.get('/api/projects/:projectId/seo/latest', async (request, response) => {
+  try {
+    const result = await query(
+      `
+        select *
+        from seo_analyses
+        where project_id = $1
+        order by created_at desc
+        limit 1
+      `,
+      [request.params.projectId],
+    )
+
+    response.json({ analysis: result.rows[0] || null })
+  } catch (error) {
+    response.status(500).json({ error: error.message })
+  }
+})
+
+app.post('/api/projects/:projectId/seo/analyze', async (request, response) => {
+  try {
+    const projectResult = await query('select * from projects where id = $1', [request.params.projectId])
+    const project = projectResult.rows[0]
+
+    if (!project) {
+      response.status(404).json({ error: 'Project not found' })
+      return
+    }
+
+    const competitorsResult = await query(
+      `
+        select *
+        from competitors
+        where project_id = $1
+        order by id asc
+      `,
+      [project.id],
+    )
+
+    const { analysis, source } = await analyzeSeoWithOpenAI(project, competitorsResult.rows)
+    const result = await query(
+      `
+        insert into seo_analyses (project_id, payload, source)
+        values ($1, $2, $3)
+        returning *
+      `,
+      [project.id, analysis, source],
+    )
+
+    response.status(201).json({ analysis: result.rows[0] })
   } catch (error) {
     response.status(500).json({ error: error.message })
   }

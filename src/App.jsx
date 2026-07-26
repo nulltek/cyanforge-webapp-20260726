@@ -117,6 +117,7 @@ function App() {
   const [projects, setProjects] = useState([])
   const [activeProjectId, setActiveProjectId] = useState(null)
   const [competitors, setCompetitors] = useState([])
+  const [seoAnalysis, setSeoAnalysis] = useState(null)
   const [selectedCompetitor, setSelectedCompetitor] = useState(null)
   const [projectBusy, setProjectBusy] = useState(false)
   const [competitorSource, setCompetitorSource] = useState('')
@@ -129,11 +130,19 @@ function App() {
   const activeProject = projects.find((project) => project.id === activeProjectId) || projects[0] || null
   const competitorSearchKey = openAiStatus.features.find((feature) => feature.id === 'competitor_search')
   const competitorJob = featureJobs.competitor_search
+  const seoAnalysisKey = openAiStatus.features.find((feature) => feature.id === 'seo_analysis')
+  const seoJob = featureJobs.seo_analysis
   const showCompetitorMiniProgress = Boolean(
     competitorJob
       && competitorJob.status === 'running'
       && dashboardTab !== 'competitor search'
       && !hiddenJobPopups.competitor_search,
+  )
+  const showSeoMiniProgress = Boolean(
+    seoJob
+      && seoJob.status === 'running'
+      && dashboardTab !== 'seo analysis'
+      && !hiddenJobPopups.seo_analysis,
   )
 
   useEffect(() => listenToAuthState(setUser), [])
@@ -185,6 +194,10 @@ function App() {
 
     apiRequest(`/api/projects/${activeProjectId}/competitors`)
       .then((data) => setCompetitors(data.competitors || []))
+      .catch((error) => setActionStatus(error.message))
+
+    apiRequest(`/api/projects/${activeProjectId}/seo/latest`)
+      .then((data) => setSeoAnalysis(data.analysis))
       .catch((error) => setActionStatus(error.message))
   }, [activeProjectId])
 
@@ -362,6 +375,60 @@ function App() {
         competitor_search: {
           ...current.competitor_search,
           label: 'Competitor search',
+          status: 'failed',
+          progress: 100,
+        },
+      }))
+      setActionStatus(error.message)
+    } finally {
+      setProjectBusy(false)
+    }
+  }
+
+  async function runSeoAnalysis() {
+    if (!activeProjectId) {
+      setActionStatus('Create a project first.')
+      return
+    }
+
+    setProjectBusy(true)
+    setActionStatus('Running SEO analysis with GPT-5.5 low effort...')
+    setHiddenJobPopups((current) => ({ ...current, seo_analysis: false }))
+    setFeatureJobs((current) => ({
+      ...current,
+      seo_analysis: {
+        label: 'SEO analysis',
+        status: 'running',
+        progress: 8,
+      },
+    }))
+
+    try {
+      const data = await apiRequest(`/api/projects/${activeProjectId}/seo/analyze`, {
+        method: 'POST',
+      })
+
+      setSeoAnalysis(data.analysis)
+      setFeatureJobs((current) => ({
+        ...current,
+        seo_analysis: {
+          ...current.seo_analysis,
+          label: 'SEO analysis',
+          status: 'done',
+          progress: 100,
+        },
+      }))
+      setActionStatus(
+        data.analysis?.source === 'openai'
+          ? 'SEO analysis complete with OpenAI.'
+          : 'SEO placeholder analysis shown. Save the SEO analysis API key to run live analysis.',
+      )
+    } catch (error) {
+      setFeatureJobs((current) => ({
+        ...current,
+        seo_analysis: {
+          ...current.seo_analysis,
+          label: 'SEO analysis',
           status: 'failed',
           progress: 100,
         },
@@ -678,6 +745,7 @@ function App() {
               {[
                 ['details', FileText],
                 ['competitor search', Search],
+                ['seo analysis', Globe2],
                 ['analytics', BarChart3],
               ].map(([tab, Icon]) => (
                 <button
@@ -689,6 +757,7 @@ function App() {
                   <Icon size={18} />
                   {tab}
                   {tab === 'competitor search' && competitorJob?.status === 'done' ? <span className="nav-done-dot" /> : null}
+                  {tab === 'seo analysis' && seoJob?.status === 'done' ? <span className="nav-done-dot" /> : null}
                 </button>
               ))}
             </nav>
@@ -708,6 +777,10 @@ function App() {
                   <article className="analytics-card">
                     <span>Competitor key</span>
                     <strong>{competitorSearchKey?.configured ? 'Connected' : 'Missing'}</strong>
+                  </article>
+                  <article className="analytics-card">
+                    <span>SEO key</span>
+                    <strong>{seoAnalysisKey?.configured ? 'Connected' : 'Missing'}</strong>
                   </article>
                   <article className="analytics-card">
                     <span>Competitors</span>
@@ -754,6 +827,75 @@ function App() {
               </div>
             ) : null}
 
+            {dashboardTab === 'seo analysis' ? (
+              <div className="dashboard-panel">
+                <p className="eyebrow">SEO analysis</p>
+                <h1>Analyze {activeProject.name} against SEO rules and competitors.</h1>
+                <p>{actionStatus}</p>
+                {seoJob?.status === 'running' ? (
+                  <div className="feature-progress">
+                    <div className="feature-progress-meta">
+                      <span>SEO analysis running</span>
+                      <strong>{seoJob.progress}%</strong>
+                    </div>
+                    <div className="feature-progress-track">
+                      <span style={{ width: `${seoJob.progress}%` }} />
+                    </div>
+                  </div>
+                ) : null}
+                <button className="button light large competitor-search" type="button" onClick={runSeoAnalysis} disabled={projectBusy}>
+                  {projectBusy ? <LoaderCircle size={18} className="spin-icon" /> : <Globe2 size={18} />}
+                  Run SEO analysis
+                </button>
+
+                {seoAnalysis ? (
+                  <div className="seo-report">
+                    <div className="seo-score-card">
+                      <span>SEO score</span>
+                      <strong>{seoAnalysis.payload?.score ?? 0}</strong>
+                      <p>{seoAnalysis.payload?.summary || 'No summary available.'}</p>
+                    </div>
+                    <div className="seo-section-grid">
+                      <article>
+                        <h3>Basic SEO rules</h3>
+                        {(seoAnalysis.payload?.rules || []).map((rule) => (
+                          <div className="seo-row" key={`${rule.rule}-${rule.finding}`}>
+                            <span>{rule.rule}</span>
+                            <strong>{rule.status}</strong>
+                            <p>{rule.finding}</p>
+                          </div>
+                        ))}
+                      </article>
+                      <article>
+                        <h3>Competitor comparison</h3>
+                        {(seoAnalysis.payload?.competitorComparison || []).map((competitor) => (
+                          <div className="seo-row" key={`${competitor.businessName}-${competitor.risk}`}>
+                            <span>{competitor.businessName}</span>
+                            <strong>{competitor.risk}</strong>
+                            <p>{competitor.edge}</p>
+                          </div>
+                        ))}
+                      </article>
+                    </div>
+                    <article className="seo-recommendations">
+                      <h3>Recommendations</h3>
+                      {(seoAnalysis.payload?.recommendations || []).map((recommendation) => (
+                        <p key={recommendation}>
+                          <Check size={16} />
+                          {recommendation}
+                        </p>
+                      ))}
+                    </article>
+                  </div>
+                ) : (
+                  <div className="empty-competitors">
+                    <Globe2 size={22} />
+                    <p>No SEO analysis run yet.</p>
+                  </div>
+                )}
+              </div>
+            ) : null}
+
             {dashboardTab === 'analytics' ? (
               <div className="dashboard-panel">
                 <p className="eyebrow">Analytics</p>
@@ -770,6 +912,10 @@ function App() {
                   <article className="analytics-card">
                     <span>Reports saved</span>
                     <strong>{savedReports.length}</strong>
+                  </article>
+                  <article className="analytics-card">
+                    <span>SEO score</span>
+                    <strong>{seoAnalysis?.payload?.score ?? 'None'}</strong>
                   </article>
                 </div>
                 <div className="analytics-panel">
@@ -855,6 +1001,25 @@ function App() {
             type="button"
             aria-label="Close progress popup"
             onClick={() => setHiddenJobPopups((current) => ({ ...current, competitor_search: true }))}
+          >
+            <X size={16} />
+          </button>
+        </div>
+      ) : null}
+
+      {showSeoMiniProgress ? (
+        <div className="floating-progress" role="status" aria-live="polite">
+          <div className="floating-progress-copy">
+            <span>{seoJob.label}</span>
+            <strong>{seoJob.progress}%</strong>
+          </div>
+          <div className="feature-progress-track">
+            <span style={{ width: `${seoJob.progress}%` }} />
+          </div>
+          <button
+            type="button"
+            aria-label="Close SEO progress popup"
+            onClick={() => setHiddenJobPopups((current) => ({ ...current, seo_analysis: true }))}
           >
             <X size={16} />
           </button>
