@@ -436,9 +436,10 @@ function fallbackArticle(project, competitors) {
 
 async function fetchWebsiteSnapshot(url) {
   try {
+    const targetUrl = new URL(url)
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'RankSprintLayoutAudit/1.0',
+        'User-Agent': 'RankSprintAuditBot/1.0 (+https://cyanforge-web.onrender.com/)',
         Accept: 'text/html,application/xhtml+xml',
       },
       redirect: 'follow',
@@ -446,11 +447,60 @@ async function fetchWebsiteSnapshot(url) {
     })
 
     const html = await response.text()
-    return html
+    const title = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim() || ''
+    const metaDescription = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["'][^>]*>/i)?.[1]?.trim()
+      || html.match(/<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["'][^>]*>/i)?.[1]?.trim()
+      || ''
+    const bodyText = html
       .replace(/<script[\s\S]*?<\/script>/gi, ' ')
       .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<noscript[\s\S]*?<\/noscript>/gi, (match) => match.replace(/<\/?noscript[^>]*>/gi, ' '))
+      .replace(/<[^>]+>/g, ' ')
       .replace(/\s+/g, ' ')
       .slice(0, 16000)
+
+    const scriptSources = [...html.matchAll(/<script[^>]+src=["']([^"']+)["'][^>]*>/gi)]
+      .map((match) => match[1])
+      .filter(Boolean)
+      .slice(0, 6)
+
+    const bundleTexts = []
+    for (const source of scriptSources) {
+      try {
+        const scriptUrl = new URL(source, targetUrl)
+        if (scriptUrl.origin !== targetUrl.origin) {
+          continue
+        }
+
+        const scriptResponse = await fetch(scriptUrl, {
+          headers: { 'User-Agent': 'RankSprintAuditBot/1.0' },
+          signal: AbortSignal.timeout(6000),
+        })
+        const scriptText = await scriptResponse.text()
+        const readableBundleText = scriptText
+          .replace(/\\u([0-9a-fA-F]{4})/g, (_match, code) => String.fromCharCode(Number.parseInt(code, 16)))
+          .replace(/[^a-zA-Z0-9$.,:;!?@/#%&()[\]\s-]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .slice(0, 8000)
+        bundleTexts.push(`Script ${scriptUrl.pathname}: ${readableBundleText}`)
+      } catch {
+        // Ignore script fetch failures; raw HTML still gives crawlers and the model some context.
+      }
+    }
+
+    const clientShellWarning = bodyText.length < 500 && /id=["']root["']/i.test(html)
+      ? 'Important: raw HTML looks like a client-rendered app shell. Do not conclude that the website is blank only from the empty root. Use fetched same-origin bundle text, static fallback content, and public web/rendered-page context before judging layout.'
+      : ''
+
+    return [
+      `Final URL: ${response.url}`,
+      `HTTP status: ${response.status}`,
+      title ? `Title: ${title}` : '',
+      metaDescription ? `Meta description: ${metaDescription}` : '',
+      clientShellWarning,
+      `Raw/fallback body text: ${bodyText}`,
+      bundleTexts.length ? `Same-origin client bundle text signals:\n${bundleTexts.join('\n\n')}` : '',
+    ].filter(Boolean).join('\n\n').slice(0, 26000)
   } catch {
     return ''
   }
@@ -614,10 +664,15 @@ async function analyzeSeoWithOpenAI(project) {
     return { analysis: fallbackSeoAnalysis(project, []), source: 'fallback' }
   }
 
+  const websiteSnapshot = await fetchWebsiteSnapshot(project.website_url)
+
   const prompt = `
 Analyze SEO for the business represented by this website URL and compare it with competitors discovered from public web context.
 
 Website URL: ${project.website_url}
+
+Fetched target-site snapshot:
+${websiteSnapshot || 'Fetch unavailable. Use public web search context and visible search snippets.'}
 
 Only use the submitted website URL as the target business input. You may inspect that URL, public pages under that same domain, and public search results needed for competitor comparison, keyword research, search-engine ranking opportunities, and AI-search/GEO visibility opportunities. Do not use project name, project description, saved competitor rows, saved reports, or prior analyses as source input.
 
@@ -743,7 +798,9 @@ Website URL: ${project.website_url}
 Fetched page snapshot:
 ${websiteSnapshot || 'Fetch unavailable. Use public web search context and visible search snippets.'}
 
-Only use the submitted website URL as the target business input. You may inspect that URL, public pages under that same domain, current public web information for category norms, and public competitor examples discovered from the URL's market. Do not use project name, project description, saved competitor rows, saved reports, or prior analyses as source input.
+Only use the submitted website URL as the target business input. You may inspect that URL, public pages under that same domain, current public web information for category norms, rendered search/web previews, and public competitor examples discovered from the URL's market. Do not use project name, project description, saved competitor rows, saved reports, or prior analyses as source input.
+
+If the fetched snapshot says the raw HTML is a client-rendered app shell, do not score the site as blank just because #root is empty in raw HTML. Use same-origin bundle text signals, static fallback content, and public rendered-page context to infer the actual visible interface. Only report a blank-site issue when both the fetched snapshot and public/rendered context show no usable content.
 
 Judge common mobile widths around 360-430px and laptop widths around 1366-1440px. Look for responsiveness, layout issues, branding consistency, visual hierarchy, navigation, CTA clarity, imagery quality, spacing, overflow risk, accessibility, and competitor/category expectations.
 
@@ -810,6 +867,26 @@ app.get('/api/health', async (_request, response) => {
   } catch (error) {
     response.status(500).json({ ok: false, error: error.message })
   }
+})
+
+app.get('/robots.txt', (_request, response) => {
+  response.type('text/plain').send([
+    'User-agent: *',
+    'Allow: /',
+    'Sitemap: https://cyanforge-web.onrender.com/sitemap.xml',
+    '',
+  ].join('\n'))
+})
+
+app.get('/sitemap.xml', (_request, response) => {
+  response.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://cyanforge-web.onrender.com/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>`)
 })
 
 app.get('/api/settings/openai', async (_request, response) => {
