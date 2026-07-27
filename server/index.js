@@ -70,7 +70,7 @@ function createPool() {
 
 const pool = createPool()
 
-app.use(express.json({ limit: '1mb' }))
+app.use(express.json({ limit: '3mb' }))
 
 async function query(sql, params = []) {
   if (!pool) {

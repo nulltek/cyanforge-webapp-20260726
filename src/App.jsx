@@ -65,6 +65,11 @@ const copy = {
     language: 'Language',
     username: 'Username',
     profilePicture: 'Profile picture',
+    uploadProfilePicture: 'Upload profile picture',
+    profilePictureHelp: 'Upload an image or paste a URL.',
+    chooseImage: 'Choose image',
+    removeImage: 'Remove image',
+    imageUploadFailed: 'Image upload failed. Use a JPG, PNG, WebP, or GIF under 8 MB.',
     saveProfile: 'Save profile',
     usernameLimit: 'Username can be changed 2 times per month.',
     administrator: 'Administrator',
@@ -101,6 +106,8 @@ const copy = {
     projectName: 'Project name',
     projectDescription: 'Project description',
     projectImageUrl: 'Project image URL',
+    uploadProjectImage: 'Upload project image',
+    projectImageHelp: 'Upload an image or paste a URL.',
     websiteUrl: 'Website URL',
     projectNamePlaceholder: 'NullTek growth audit',
     projectDescriptionPlaceholder: 'Short business context, market, customers, or offer.',
@@ -224,6 +231,11 @@ const copy = {
     language: 'Nyelv',
     username: 'Felhaszn\u00e1l\u00f3n\u00e9v',
     profilePicture: 'Profilk\u00e9p',
+    uploadProfilePicture: 'Profilk\u00e9p felt\u00f6lt\u00e9se',
+    profilePictureHelp: 'T\u00f6lts fel k\u00e9pet vagy illessz be URL-t.',
+    chooseImage: 'K\u00e9p v\u00e1laszt\u00e1sa',
+    removeImage: 'K\u00e9p elt\u00e1vol\u00edt\u00e1sa',
+    imageUploadFailed: 'A k\u00e9pfelt\u00f6lt\u00e9s sikertelen. Haszn\u00e1lj 8 MB alatti JPG, PNG, WebP vagy GIF f\u00e1jlt.',
     saveProfile: 'Profil ment\u00e9se',
     usernameLimit: 'A felhaszn\u00e1l\u00f3n\u00e9v havonta 2 alkalommal m\u00f3dos\u00edthat\u00f3.',
     administrator: 'Adminisztr\u00e1tor',
@@ -260,6 +272,8 @@ const copy = {
     projectName: 'Projekt neve',
     projectDescription: 'Projekt le\u00edr\u00e1sa',
     projectImageUrl: 'Projekt k\u00e9p URL',
+    uploadProjectImage: 'Projektk\u00e9p felt\u00f6lt\u00e9se',
+    projectImageHelp: 'T\u00f6lts fel k\u00e9pet vagy illessz be URL-t.',
     websiteUrl: 'Weboldal URL',
     projectNamePlaceholder: 'NullTek n\u00f6veked\u00e9si audit',
     projectDescriptionPlaceholder: 'R\u00f6vid \u00fczleti kontextus, piac, \u00fcgyfelek vagy aj\u00e1nlat.',
@@ -414,6 +428,39 @@ function interpolate(text, values = {}) {
     (current, [key, value]) => current.replaceAll(`{${key}}`, value),
     text,
   )
+}
+
+function imageFileToDataUrl(file, maxSize = 900, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type.startsWith('image/') || file.size > 8 * 1024 * 1024) {
+      reject(new Error('Invalid image file'))
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onerror = () => reject(new Error('Image read failed'))
+    reader.onload = () => {
+      const image = new window.Image()
+      image.onerror = () => reject(new Error('Image decode failed'))
+      image.onload = () => {
+        const scale = Math.min(1, maxSize / Math.max(image.width, image.height))
+        const width = Math.max(1, Math.round(image.width * scale))
+        const height = Math.max(1, Math.round(image.height * scale))
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        const context = canvas.getContext('2d')
+        if (!context) {
+          reject(new Error('Canvas unavailable'))
+          return
+        }
+        context.drawImage(image, 0, 0, width, height)
+        resolve(canvas.toDataURL('image/jpeg', quality))
+      }
+      image.src = reader.result
+    }
+    reader.readAsDataURL(file)
+  })
 }
 
 async function apiRequest(path, options = {}) {
@@ -1101,6 +1148,21 @@ function App() {
     setProfileForm((current) => ({ ...current, [event.target.name]: event.target.value }))
   }
 
+  async function uploadProfilePicture(event) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) {
+      return
+    }
+
+    try {
+      const dataUrl = await imageFileToDataUrl(file, 720, 0.84)
+      setProfileForm((current) => ({ ...current, photoURL: dataUrl }))
+    } catch {
+      setActionStatus(t.imageUploadFailed)
+    }
+  }
+
   async function saveProfileSettings(event) {
     event.preventDefault()
 
@@ -1166,6 +1228,21 @@ function App() {
 
   function updateProjectField(event) {
     setProjectForm((current) => ({ ...current, [event.target.name]: event.target.value }))
+  }
+
+  async function uploadProjectImage(event) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) {
+      return
+    }
+
+    try {
+      const dataUrl = await imageFileToDataUrl(file, 960, 0.82)
+      setProjectForm((current) => ({ ...current, imageUrl: dataUrl }))
+    } catch {
+      setActionStatus(t.imageUploadFailed)
+    }
   }
 
   async function loadProjects(userId = user?.uid) {
@@ -1664,13 +1741,36 @@ function App() {
                 <span>{t.projectDescription}</span>
                 <textarea name="description" value={projectForm.description} onChange={updateProjectField} placeholder={t.projectDescriptionPlaceholder} />
               </label>
-              <label>
+              <div className="project-form-field">
                 <span>{t.projectImageUrl}</span>
+                <div className="image-upload-row">
+                  <img src={projectForm.imageUrl || visualDataUri(projectForm.name || 'Project image', 1)} alt="" />
+                  <div>
+                    <p>{t.projectImageHelp}</p>
+                    <div className="upload-actions">
+                      <label className="button dark upload-button">
+                        <Image size={17} />
+                        {t.chooseImage}
+                        <input type="file" accept="image/*" onChange={uploadProjectImage} />
+                      </label>
+                      {projectForm.imageUrl ? (
+                        <button
+                          className="button ghost"
+                          type="button"
+                          onClick={() => setProjectForm((current) => ({ ...current, imageUrl: '' }))}
+                        >
+                          <X size={17} />
+                          {t.removeImage}
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
                 <div className="field-shell">
                   <Image size={17} />
                   <input name="imageUrl" value={projectForm.imageUrl} onChange={updateProjectField} placeholder="https://..." />
                 </div>
-              </label>
+              </div>
               <label>
                 <span>{t.websiteUrl}</span>
                 <div className="field-shell">
@@ -1793,10 +1893,33 @@ function App() {
                     <span>{t.username}</span>
                     <input name="displayName" value={profileForm.displayName} onChange={updateProfileField} placeholder="NullTek" required />
                   </label>
-                  <label className="settings-field">
+                  <div className="settings-field">
                     <span>{t.profilePicture}</span>
+                    <div className="image-upload-row">
+                      <img src={profileForm.photoURL || visualDataUri(profileForm.displayName || 'Profile', 2)} alt="" />
+                      <div>
+                        <p>{t.profilePictureHelp}</p>
+                        <div className="upload-actions">
+                          <label className="button dark upload-button">
+                            <Camera size={17} />
+                            {t.chooseImage}
+                            <input type="file" accept="image/*" onChange={uploadProfilePicture} />
+                          </label>
+                          {profileForm.photoURL ? (
+                            <button
+                              className="button ghost"
+                              type="button"
+                              onClick={() => setProfileForm((current) => ({ ...current, photoURL: '' }))}
+                            >
+                              <X size={17} />
+                              {t.removeImage}
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
                     <input name="photoURL" value={profileForm.photoURL} onChange={updateProfileField} placeholder="https://..." />
-                  </label>
+                  </div>
                   <div className="avatar-picker">
                     {['cyan-profile', 'blue-grid', 'clean-wave', 'audit-map'].map((seed, index) => (
                       <button

@@ -169,6 +169,7 @@ select {
 .theme-dark .feature-progress,
 .theme-dark .floating-progress,
 .theme-dark .field-shell,
+.theme-dark .image-upload-row,
 .theme-dark .listed-project-card,
 .theme-dark .competitor-row,
 .theme-dark .article-history-menu button,
@@ -841,12 +842,14 @@ button {
   padding: 14px;
 }
 
-.project-form label {
+.project-form label,
+.project-form-field {
   display: grid;
   gap: 8px;
 }
 
 .project-form label span,
+.project-form-field > span,
 .settings-field span {
   color: rgba(7, 51, 74, 0.72);
   font-size: 0.88rem;
@@ -875,6 +878,50 @@ button {
   min-width: 0;
   display: grid;
   gap: 8px;
+}
+
+.image-upload-row {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  border: 1px solid rgba(43, 178, 230, 0.18);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(238, 250, 255, 0.62);
+}
+
+.image-upload-row > img {
+  width: 92px;
+  height: 92px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.image-upload-row p {
+  margin: 0 0 10px;
+  color: rgba(7, 51, 74, 0.62);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.upload-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.upload-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.upload-button input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
 }
 
 .segmented-control {
@@ -2423,6 +2470,15 @@ button:disabled {
 
   .profile-editor > img {
     width: 120px;
+  }
+
+  .image-upload-row {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+
+  .image-upload-row > img {
+    width: 76px;
+    height: 76px;
   }
 
   .listed-project-card {
