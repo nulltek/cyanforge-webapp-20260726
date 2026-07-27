@@ -708,6 +708,7 @@ button {
   background: rgba(238, 250, 255, 0.84);
   text-align: left;
   cursor: pointer;
+  overflow: hidden;
 }
 
 .listed-project-card:hover {
@@ -1408,6 +1409,7 @@ button {
 }
 
 .analytics-card {
+  min-width: 0;
   padding: 22px;
 }
 
@@ -1419,9 +1421,13 @@ button {
 }
 
 .analytics-card strong {
+  display: block;
+  max-width: 100%;
   color: #062d42;
   font-size: clamp(1.4rem, 2.3vw, 2.4rem);
   line-height: 1;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .full-row-card {
@@ -1453,6 +1459,8 @@ button {
 
 .dashboard-sidebar,
 .dashboard-panel {
+  min-width: 0;
+  overflow: hidden;
   border: 1px solid rgba(43, 178, 230, 0.2);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.78);
@@ -1487,6 +1495,8 @@ button {
   margin: 0;
   color: rgba(7, 51, 74, 0.6);
   text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .dashboard-nav {
@@ -1508,6 +1518,11 @@ button {
   font-weight: 850;
   text-transform: capitalize;
   cursor: pointer;
+  min-width: 0;
+}
+
+.dashboard-nav button svg {
+  flex: 0 0 auto;
 }
 
 .nav-done-dot {
@@ -1526,6 +1541,7 @@ button {
 
 .dashboard-content {
   min-width: 0;
+  overflow: hidden;
 }
 
 .dashboard-panel {
@@ -1546,6 +1562,7 @@ button {
   max-width: 720px;
   color: rgba(7, 51, 74, 0.66);
   font-size: 1.06rem;
+  overflow-wrap: anywhere;
 }
 
 .feature-progress {
@@ -2288,7 +2305,7 @@ button:disabled {
   }
 
   .dashboard-nav {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
 
   .projects-grid {
