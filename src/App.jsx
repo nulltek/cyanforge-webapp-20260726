@@ -1303,7 +1303,7 @@ function App() {
     }
 
     setProjectBusy(true)
-    setActionStatus('Searching competitors with GPT-5.5 low effort...')
+    setActionStatus('Searching competitors with GPT-4o medium effort...')
     setCompetitorSource('')
     setHiddenJobPopups((current) => ({ ...current, competitor_search: false }))
     setFeatureJobs((current) => ({
@@ -1362,7 +1362,7 @@ function App() {
     }
 
     setProjectBusy(true)
-    setActionStatus('Running SEO analysis with GPT-5.5 low effort...')
+    setActionStatus('Running SEO analysis with GPT-4o medium effort...')
     setHiddenJobPopups((current) => ({ ...current, seo_analysis: false }))
     setFeatureJobs((current) => ({
       ...current,
@@ -1424,7 +1424,7 @@ function App() {
     }
 
     setProjectBusy(true)
-    setActionStatus('Writing blog/news article with GPT-5.5 medium effort...')
+    setActionStatus('Writing blog/news article with GPT-4o medium effort...')
     setHiddenJobPopups((current) => ({ ...current, blog_writer: false }))
     setFeatureJobs((current) => ({
       ...current,
@@ -1482,7 +1482,7 @@ function App() {
     }
 
     setProjectBusy(true)
-    setActionStatus('Running responsive layout audit with GPT-5.5 medium effort...')
+    setActionStatus('Running responsive layout audit with GPT-4o medium effort...')
     setHiddenJobPopups((current) => ({ ...current, layout_audit: false }))
     setFeatureJobs((current) => ({
       ...current,

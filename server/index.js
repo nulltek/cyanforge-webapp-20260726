@@ -10,6 +10,8 @@ const __dirname = path.dirname(__filename)
 const app = express()
 const port = process.env.PORT || 3000
 const firebaseProjectId = process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || ''
+const openAiFeatureModel = 'gpt-4o'
+const openAiFeatureEffort = 'medium'
 const firebaseJwks = createRemoteJWKSet(
   new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'),
 )
@@ -17,26 +19,26 @@ const apiKeyFeatures = [
   {
     id: 'competitor_search',
     label: 'Competitor search',
-    model: 'gpt-5.5',
-    reasoningEffort: 'low',
+    model: openAiFeatureModel,
+    reasoningEffort: openAiFeatureEffort,
   },
   {
     id: 'seo_analysis',
     label: 'SEO analysis',
-    model: 'gpt-5.5',
-    reasoningEffort: 'low',
+    model: openAiFeatureModel,
+    reasoningEffort: openAiFeatureEffort,
   },
   {
     id: 'blog_writer',
     label: 'Blog and news writer',
-    model: 'gpt-5.5',
-    reasoningEffort: 'medium',
+    model: openAiFeatureModel,
+    reasoningEffort: openAiFeatureEffort,
   },
   {
     id: 'layout_audit',
     label: 'Responsive layout audit',
-    model: 'gpt-5.5',
-    reasoningEffort: 'medium',
+    model: openAiFeatureModel,
+    reasoningEffort: openAiFeatureEffort,
   },
 ]
 
@@ -612,7 +614,7 @@ async function findCompetitorsWithOpenAI(project) {
   }
 
   const prompt = `
-Find direct business competitors for the business represented by this website URL.
+Find direct business competitors for the business represented by this website URL. Use medium analytical effort.
 
 Website URL: ${project.website_url}
 
@@ -641,8 +643,7 @@ Return 5 to 10 competitors. Do not include the submitted business itself.
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-5.5',
-      reasoning: { effort: 'low' },
+      model: openAiFeatureModel,
       tools: [{ type: 'web_search', search_context_size: 'low' }],
       input: [{ role: 'user', content: prompt }],
     }),
@@ -667,7 +668,7 @@ async function analyzeSeoWithOpenAI(project) {
   const websiteSnapshot = await fetchWebsiteSnapshot(project.website_url)
 
   const prompt = `
-Analyze SEO for the business represented by this website URL and compare it with competitors discovered from public web context.
+Analyze SEO for the business represented by this website URL and compare it with competitors discovered from public web context. Use medium analytical effort.
 
 Website URL: ${project.website_url}
 
@@ -708,8 +709,7 @@ Score must be from 0 to 10, where 10 is excellent SEO. Rules to cover: title tag
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-5.5',
-      reasoning: { effort: 'low' },
+      model: openAiFeatureModel,
       tools: [{ type: 'web_search', search_context_size: 'low' }],
       tool_choice: 'auto',
       input: [{ role: 'user', content: prompt }],
@@ -733,7 +733,7 @@ async function writeArticleWithOpenAI(project) {
   }
 
   const prompt = `
-Write a blog/news article draft for the business represented by this website URL.
+Write a blog/news article draft for the business represented by this website URL. Use medium analytical and editorial effort.
 
 Website URL: ${project.website_url}
 
@@ -764,8 +764,7 @@ Return only valid JSON in this shape:
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-5.5',
-      reasoning: { effort: 'medium' },
+      model: openAiFeatureModel,
       tools: [{ type: 'web_search', search_context_size: 'low' }],
       tool_choice: 'auto',
       input: [{ role: 'user', content: prompt }],
@@ -791,7 +790,7 @@ async function analyzeLayoutWithOpenAI(project) {
   const websiteSnapshot = await fetchWebsiteSnapshot(project.website_url)
 
   const prompt = `
-Analyze this website's mobile and laptop layout quality.
+Analyze this website's mobile and laptop layout quality. Use medium analytical effort.
 
 Website URL: ${project.website_url}
 
@@ -840,8 +839,7 @@ Score must be from 0 to 10, where 10 means polished, responsive, accessible, and
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-5.5',
-      reasoning: { effort: 'medium' },
+      model: openAiFeatureModel,
       tools: [{ type: 'web_search', search_context_size: 'low' }],
       tool_choice: 'auto',
       input: [{ role: 'user', content: prompt }],
