@@ -213,6 +213,44 @@ select {
   color: #f7fdff;
 }
 
+.theme-dark,
+.theme-dark :where(h1, h2, h3, h4, p, span, strong, small, label, a, button, input, textarea, select, option, pre, code, b, li) {
+  color: #ffffff;
+}
+
+.theme-dark :where(
+  .price-card,
+  .workflow-card,
+  .bento-card,
+  .landing-intro,
+  .footer-section,
+  .auth-modal,
+  .auth-panel,
+  .setup-note,
+  .google-identity-shell,
+  .auth-form label,
+  .auth-divider,
+  .auth-switch,
+  .page-heading,
+  .pricing-copy,
+  .section-copy,
+  .hero-copy,
+  .user-chip,
+  .saved-report-list span
+) {
+  color: #ffffff;
+  background-color: rgba(0, 10, 16, 0.86);
+  border-color: rgba(53, 212, 255, 0.24);
+}
+
+.theme-dark :where(.button.ghost, .button.dark, .button.light, .icon-button, .auth-close) {
+  color: #ffffff;
+}
+
+.theme-dark :where(input::placeholder, textarea::placeholder) {
+  color: rgba(255, 255, 255, 0.58);
+}
+
 .nav-shell {
   position: fixed;
   top: 22px;
@@ -2442,4 +2480,68 @@ button:disabled {
     bottom: 12px;
     border-radius: 18px;
   }
+}
+
+.theme-dark :where(
+  .hero-copy,
+  .hero-copy *,
+  .section-copy,
+  .section-copy *,
+  .pricing-copy,
+  .pricing-copy *,
+  .price-card,
+  .price-card *,
+  .footer-section,
+  .footer-section *,
+  .nav-shell,
+  .nav-shell *,
+  .settings-page,
+  .settings-page *,
+  .projects-page,
+  .projects-page *,
+  .dashboard-shell,
+  .dashboard-shell *,
+  .auth-modal,
+  .auth-modal *,
+  .competitor-modal,
+  .competitor-modal *,
+  .article-modal,
+  .article-modal *,
+  .floating-progress,
+  .floating-progress *
+) {
+  color: #ffffff !important;
+}
+
+.theme-dark :where(
+  .price-card,
+  .footer-section,
+  .settings-card,
+  .project-form,
+  .project-list-panel,
+  .dashboard-sidebar,
+  .dashboard-panel,
+  .analytics-card,
+  .analytics-panel,
+  .seo-score-card,
+  .seo-section-grid article,
+  .seo-recommendations,
+  .article-summary-card,
+  .article-trends-card,
+  .article-body-card,
+  .article-history-menu,
+  .article-modal,
+  .competitor-modal,
+  .listed-project-card,
+  .competitor-row,
+  .feature-key-form,
+  .field-shell,
+  .feature-progress,
+  .floating-progress,
+  .admin-lock-note,
+  .button.dark,
+  .button.ghost
+) {
+  background: rgba(0, 10, 16, 0.88) !important;
+  border-color: rgba(53, 212, 255, 0.26) !important;
 }

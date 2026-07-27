@@ -138,6 +138,11 @@ const copy = {
     downloadTwoPagePdf: 'Download 2-page PDF',
     basicSeoRules: 'Basic SEO rules',
     competitorComparison: 'Competitor comparison',
+    popularKeywords: 'Popular keywords',
+    keywordCoverage: 'Keyword coverage',
+    rankingPlan: 'Search + AI ranking plan',
+    present: 'Present',
+    missingKeyword: 'Missing',
     recommendations: 'Recommendations',
     noSeo: 'No SEO analysis run yet.',
     blogTitle: 'Write a trend-aware article for {project}.',
@@ -292,6 +297,11 @@ const copy = {
     downloadTwoPagePdf: '2 oldalas PDF let\u00f6lt\u00e9se',
     basicSeoRules: 'Alap SEO szab\u00e1lyok',
     competitorComparison: 'Versenyt\u00e1rs \u00f6sszehasonl\u00edt\u00e1s',
+    popularKeywords: 'N\u00e9pszer\u0171 kulcsszavak',
+    keywordCoverage: 'Kulcssz\u00f3 lefedetts\u00e9g',
+    rankingPlan: 'Keres\u0151 + AI rangsorol\u00e1si terv',
+    present: 'Jelen van',
+    missingKeyword: 'Hi\u00e1nyzik',
     recommendations: 'Javaslatok',
     noSeo: 'M\u00e9g nincs SEO elemz\u00e9s.',
     blogTitle: 'Trend-alap\u00fa cikk \u00edr\u00e1sa ehhez: {project}.',
@@ -656,7 +666,27 @@ async function downloadSeoPdf(project, analysis) {
     cursorY += 3
   })
 
-  cursorY = 158
+  cursorY = 132
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.text('Popular keywords and coverage', 14, cursorY)
+  cursorY += 8
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  ;(payload.keywordCoverage || []).slice(0, 6).forEach((item) => {
+    cursorY = addWrappedText(
+      doc,
+      `${item.keyword} (${item.present ? 'present' : 'missing'}): ${item.whereFound || item.opportunity || 'Review keyword opportunity.'}`,
+      14,
+      cursorY,
+      180,
+      5,
+      178,
+    )
+    cursorY += 2
+  })
+
+  cursorY = 184
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(13)
   doc.text('Competitor notes', 14, cursorY)
@@ -671,9 +701,21 @@ async function downloadSeoPdf(project, analysis) {
       cursorY,
       180,
       5,
-      280,
+      250,
     )
     cursorY += 3
+  })
+
+  cursorY = 252
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.text('Ranking plan', 14, cursorY)
+  cursorY += 8
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  ;(payload.rankingPlan || []).slice(0, 4).forEach((step, index) => {
+    cursorY = addWrappedText(doc, `${index + 1}. ${step}`, 14, cursorY, 180, 5, 286)
+    cursorY += 2
   })
 
   doc.save(`${fileBase}-seo-improvements.pdf`)
@@ -1955,6 +1997,35 @@ function App() {
                         ))}
                       </article>
                     </div>
+                    <div className="seo-section-grid">
+                      <article>
+                        <h3>{t.popularKeywords}</h3>
+                        {(seoAnalysis.payload?.popularKeywords || []).map((keyword) => (
+                          <div className="seo-row" key={keyword}>
+                            <span>{keyword}</span>
+                          </div>
+                        ))}
+                      </article>
+                      <article>
+                        <h3>{t.keywordCoverage}</h3>
+                        {(seoAnalysis.payload?.keywordCoverage || []).map((item) => (
+                          <div className="seo-row" key={`${item.keyword}-${item.present}`}>
+                            <span>{item.keyword}</span>
+                            <strong>{item.present ? t.present : t.missingKeyword}</strong>
+                            <p>{item.whereFound || item.opportunity}</p>
+                          </div>
+                        ))}
+                      </article>
+                    </div>
+                    <article className="seo-recommendations">
+                      <h3>{t.rankingPlan}</h3>
+                      {(seoAnalysis.payload?.rankingPlan || []).map((step) => (
+                        <p key={step}>
+                          <Check size={16} />
+                          {step}
+                        </p>
+                      ))}
+                    </article>
                     <article className="seo-recommendations">
                       <h3>{t.recommendations}</h3>
                       {(seoAnalysis.payload?.recommendations || []).map((recommendation) => (
@@ -2010,7 +2081,7 @@ function App() {
                   {articleDraft ? (
                     <div className="article-report">
                       <article className="article-summary-card">
-                        <span>{t.latestPost} ? {articleDraft.source === 'openai' ? t.liveTrendDraft : t.placeholderDraft}</span>
+                        <span>{t.latestPost} / {articleDraft.source === 'openai' ? t.liveTrendDraft : t.placeholderDraft}</span>
                         <h2>{articleDraft.payload?.title}</h2>
                         <p>{articleDraft.payload?.excerpt}</p>
                         <small>{articleDraft.payload?.slug}</small>

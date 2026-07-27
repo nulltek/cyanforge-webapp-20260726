@@ -247,6 +247,15 @@ function parseSeoPayload(text) {
     competitorComparison: Array.isArray(parsed.competitorComparison)
       ? parsed.competitorComparison.slice(0, 10)
       : [],
+    popularKeywords: Array.isArray(parsed.popularKeywords)
+      ? parsed.popularKeywords.slice(0, 20).map(String)
+      : [],
+    keywordCoverage: Array.isArray(parsed.keywordCoverage)
+      ? parsed.keywordCoverage.slice(0, 20)
+      : [],
+    rankingPlan: Array.isArray(parsed.rankingPlan)
+      ? parsed.rankingPlan.slice(0, 12).map(String)
+      : [],
     recommendations: Array.isArray(parsed.recommendations) ? parsed.recommendations.slice(0, 12) : [],
   }
 }
@@ -350,6 +359,13 @@ function fallbackSeoAnalysis(project, competitors) {
       edge: 'Compare metadata, speed, content depth, backlinks, and local signals.',
       risk: 'Unknown until live SEO analysis runs.',
     })),
+    popularKeywords: [],
+    keywordCoverage: [],
+    rankingPlan: [
+      'Save the SEO analysis API key to research current popular keywords.',
+      'Map missing buyer-intent keywords to landing pages and article briefs.',
+      'Strengthen AI-search answers with structured, quotable, source-backed content.',
+    ],
     recommendations: [
       'Save the SEO analysis API key to run live research with web search.',
       `Audit ${project.website_url} against current on-page SEO basics.`,
@@ -603,7 +619,11 @@ Analyze SEO for the business represented by this website URL and compare it with
 
 Website URL: ${project.website_url}
 
-Only use the submitted website URL as the target business input. You may inspect that URL, public pages under that same domain, and public search results needed for competitor comparison. Do not use project name, project description, saved competitor rows, saved reports, or prior analyses as source input.
+Only use the submitted website URL as the target business input. You may inspect that URL, public pages under that same domain, and public search results needed for competitor comparison, keyword research, search-engine ranking opportunities, and AI-search/GEO visibility opportunities. Do not use project name, project description, saved competitor rows, saved reports, or prior analyses as source input.
+
+Research current competitors in the same market, popular keywords and buyer-intent phrases in the field, recent search demand patterns, and topics that appear in search results or AI research answers. Check whether the target site actually uses those keywords or close semantic variants in title tags, headings, body copy, internal links, structured data, and high-value landing pages.
+
+Compare the target site to competitors on content depth, topical authority, structured data, trust signals, local/business proof, page speed signals, internal linking, snippet quality, and AI-answer usefulness. Recommendations must help the target website rank higher in traditional search engines and be cited or summarized better by AI research tools.
 
 Return only valid JSON in this shape:
 {
@@ -615,10 +635,15 @@ Return only valid JSON in this shape:
   "competitorComparison": [
     { "businessName": "Competitor", "edge": "Where they appear stronger or weaker", "risk": "Main SEO risk" }
   ],
+  "popularKeywords": ["Popular keyword or query in this field"],
+  "keywordCoverage": [
+    { "keyword": "Keyword", "present": true, "whereFound": "Where it appears on the target site or empty if missing", "opportunity": "How to use it better" }
+  ],
+  "rankingPlan": ["Specific step to improve search-engine and AI-research visibility"],
   "recommendations": ["Specific prioritized recommendation"]
 }
 
-Score must be from 0 to 10, where 10 is excellent SEO. Rules to cover: title tags, meta descriptions, headings, internal links, indexability, mobile performance, structured data, content depth, local/business trust signals, and technical crawlability.
+Score must be from 0 to 10, where 10 is excellent SEO. Rules to cover: title tags, meta descriptions, headings, internal links, indexability, mobile performance, structured data, content depth, local/business trust signals, technical crawlability, competitor gaps, popular keyword coverage, and AI-search answer readiness.
 `
 
   const response = await fetch('https://api.openai.com/v1/responses', {
@@ -659,18 +684,20 @@ Website URL: ${project.website_url}
 
 Only use the submitted website URL as the target business input. You may inspect that URL, public pages under that same domain, current internet trends, search demand, and public competitor activity discovered from web search. Do not use project name, project description, saved competitor rows, saved reports, or prior analyses as source input.
 
-Analyze current internet trends, current news hooks, search demand, and what competitors discovered from the URL's market appear to be discussing or promoting. Then write one useful post draft for the business.
+Analyze current internet trends, recent news hooks, current innovations, trending articles, recent breakthroughs, new product/category shifts, search demand, and what competitors discovered from the URL's market appear to be discussing or promoting. Then write one useful post draft for the business.
+
+The article must feel edited by a strong human content editor: open with a sharp hook, create curiosity in the first 2 sentences, use clear stakes, vary sentence length, avoid generic filler, add concrete examples, make headings specific, and end each major section with a reason to keep reading. Make it engaging without clickbait. The draft should help the site earn SEO traffic and AI-search citations by answering real questions clearly.
 
 Return only valid JSON in this shape:
 {
   "title": "Article title",
   "slug": "article-slug",
   "excerpt": "Short excerpt",
-  "trendSummary": "What current trend/news angle the article uses",
+  "trendSummary": "What current innovation, trend, article, or breakthrough angle the article uses",
   "competitorAngles": [
     { "businessName": "Competitor", "angle": "What they seem to be doing or what content gap exists" }
   ],
-  "postText": "Full article body in markdown, 700-1000 words, with headings",
+  "postText": "Full engaging article body in markdown, 700-1000 words, with a strong hook, specific headings, examples, and reader-focused flow",
   "callToAction": "One CTA sentence"
 }
 `
