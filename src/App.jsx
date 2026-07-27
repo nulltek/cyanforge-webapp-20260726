@@ -1014,6 +1014,16 @@ function App() {
   }, [language])
 
   useEffect(() => {
+    if (screen === 'home') {
+      return
+    }
+
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    })
+  }, [screen, activeProjectId])
+
+  useEffect(() => {
     apiRequest('/api/health')
       .then((data) => {
         setActionStatus(data.database ? 'Database connected' : 'Database not configured')

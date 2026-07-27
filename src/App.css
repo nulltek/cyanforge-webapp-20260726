@@ -1460,7 +1460,6 @@ button {
 .dashboard-sidebar,
 .dashboard-panel {
   min-width: 0;
-  overflow: hidden;
   border: 1px solid rgba(43, 178, 230, 0.2);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.78);
@@ -1471,8 +1470,15 @@ button {
   position: sticky;
   top: 112px;
   display: grid;
+  max-height: calc(100svh - 136px);
+  overflow-y: auto;
+  overflow-x: hidden;
   gap: 18px;
   padding: 18px;
+}
+
+.dashboard-panel {
+  overflow: hidden;
 }
 
 .dashboard-project img {
