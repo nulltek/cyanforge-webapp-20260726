@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import {
-  ArrowLeft,
   ArrowRight,
   BarChart3,
   Bell,
@@ -1957,18 +1956,13 @@ function App() {
       {screen === 'dashboard' && activeProject ? (
         <section className="dashboard-shell page-transition" key={`dashboard-${activeProject.id}-${language}`}>
           <aside className="dashboard-sidebar">
-            <div className="dashboard-sidebar-header">
-              <button className="dashboard-back-button" type="button" onClick={() => setScreen('projects')}>
-                <ArrowLeft size={17} />
-                <span className="dashboard-back-label">{t.backToProjects}</span>
-              </button>
-              <div className="dashboard-project">
-                <img src={activeProject.image_url || visualDataUri(activeProject.name, 2)} alt="" />
-                <div className="dashboard-project-copy">
-                  <h2>{activeProject.name}</h2>
-                  <p>{activeProject.website_url}</p>
-                </div>
-              </div>
+            <button className="button dark" type="button" onClick={() => setScreen('projects')}>
+              {t.backToProjects}
+            </button>
+            <div className="dashboard-project">
+              <img src={activeProject.image_url || visualDataUri(activeProject.name, 2)} alt="" />
+              <h2>{activeProject.name}</h2>
+              <p>{activeProject.website_url}</p>
             </div>
             <nav className="dashboard-nav" aria-label="Project dashboard navigation">
               {[
@@ -2001,7 +1995,7 @@ function App() {
                   }}
                 >
                   <Icon size={18} />
-                  <span className="dashboard-nav-label">{label}</span>
+                  {label}
                   {tab === 'competitor search' && unreadFeatureDots.competitor_search ? <span className="nav-done-dot" /> : null}
                   {tab === 'seo analysis' && unreadFeatureDots.seo_analysis ? <span className="nav-done-dot" /> : null}
                   {tab === 'blog writer' && unreadFeatureDots.blog_writer ? <span className="nav-done-dot" /> : null}
